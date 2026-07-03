@@ -344,11 +344,14 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .mini-card:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-4px);
         }
 
         .mini-card-header {
@@ -571,12 +574,14 @@
             flex-direction: column;
             justify-content: space-between;
             min-height: 140px;
-            transition: all 0.3s;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .detail-card:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-4px);
         }
 
         .detail-header {
@@ -666,48 +671,15 @@
 </head>
 <body>
 
-    <!-- SVG Icon Templates -->
-    <div style="display: none;">
-        <!-- Sun (Trời quang) -->
-        <svg id="svg-clear" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4" fill="rgba(245, 158, 11, 0.2)"></circle>
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
-        </svg>
-        <!-- Cloud-Sun (Ít mây) -->
-        <svg id="svg-partly-cloudy" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41"></path>
-            <path d="M15.3 14.8a4 4 0 1 0-5.6-5.6M12 10a4 4 0 0 1 0 8h4.5a3.5 3.5 0 0 0 0-7h-.8" fill="rgba(255,255,255,0.05)"></path>
-        </svg>
-        <!-- Clouds (Nhiều mây) -->
-        <svg id="svg-cloudy" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 10a4 4 0 0 0-4-4h-.2A5 5 0 0 0 3 11a4 4 0 0 0 4 4h9a5 5 0 0 0 5-5 4 4 0 0 0-4-4h-.2a4 4 0 0 0-3.8 4z" fill="rgba(255,255,255,0.05)"></path>
-        </svg>
-        <!-- Rain (Mưa) -->
-        <svg id="svg-rain" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 13a4 4 0 0 0-8 0 4.5 4.5 0 0 0 1 8.9h6a4.5 4.5 0 0 0 1-8.9z" fill="rgba(59, 130, 246, 0.1)"></path>
-            <path d="M8 15v4M12 16v5M16 15v4"></path>
-        </svg>
-        <!-- Dông bão -->
-        <svg id="svg-storm" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 8.58"></path>
-            <path d="M13 11l-2 4h3l-2 5" fill="rgba(245, 158, 11, 0.2)"></path>
-        </svg>
-        <!-- Tuyết -->
-        <svg id="svg-snow" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2v20M17 5L7 19M7 5l10 14"></path>
-        </svg>
-        <!-- Sương mù -->
-        <svg id="svg-mist" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 8h14M3 12h18M7 16h10M5 20h14"></path>
-        </svg>
-    </div>
+    <!-- SVG Icon Templates fragment -->
+    <div th:replace="~{fragments/icons :: icons}"></div>
 
     <div class="container">
         
         <!-- HEADER -->
         <header>
             <div class="logo-section">
-                <!-- Atoms Pulsing Sun Icon -->
+                <!-- Atmos Pulsing Sun Icon -->
                 <svg class="logo-icon" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="5"></circle>
                     <path d="M12 1v2M12 21v2M1 12h2M21 12h2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
@@ -943,18 +915,22 @@
                 </div>
             </div>
         </div>
-
-        <!-- FOOTER -->
+        
+        <!-- Footer credits -->
         <footer>
-            <div>Thiết kế & phát triển bởi Antigravity AI</div>
-            <div>Dữ liệu thời tiết thời gian thực cung cấp bởi OpenWeatherMap</div>
+            <div style="margin-top: 24px; font-size: 0.8rem; color: var(--text-muted);">
+                Dữ liệu cung cấp bởi OpenWeatherMap API
+            </div>
         </footer>
     </div>
 
     <!-- Toast Error Notification -->
     <div id="toastError" class="toast-error">Không tìm thấy thành phố! Vui lòng thử lại.</div>
 
-    <script>
+    <!-- Pass backend apiKey securely to global script scope -->
+    <script th:inline="javascript">
+        const OWM_API_KEY = /*[[${apiKey}]]*/ '4ce67ac76f1be720585c9e959bba0444';
+
         // --- GLOBAL STATE ---
         let currentUnit = 'C'; // 'C' or 'F'
         let currentWeatherData = null;
@@ -1078,25 +1054,6 @@
             }
         }
 
-        function getAqiColorClass(aqi) {
-            switch(aqi) {
-                case 1: return 'var(--accent-green)';
-                case 2: return '#84cc16'; // Lime-500
-                case 3: return 'var(--accent-yellow)';
-                case 4: return '#f97316'; // Orange-500
-                case 5: return 'var(--accent-red)';
-                default: return 'var(--text-muted)';
-            }
-        }
-
-        function getDewPointComfort(dewPointC) {
-            if (dewPointC <= 12) return 'Dễ chịu, Khô ráo';
-            if (dewPointC <= 16) return 'Thoải mái';
-            if (dewPointC <= 20) return 'Ẩm ướt nhẹ';
-            if (dewPointC <= 24) return 'Khó chịu';
-            return 'Cực kỳ ngột ngạt';
-        }
-
         // Format Date to Vietnamese
         function formatDateTime(timezoneOffset) {
             const now = new Date();
@@ -1131,6 +1088,24 @@
             return `<svg class="${sizeClass}" viewBox="0 0 24 24"><use xlink:href="#${svgId}"></use></svg>`;
         }
 
+        function getHumidityDescription(humidity) {
+            if (humidity < 30) return 'Khô hanh';
+            if (humidity <= 60) return 'Thoải mái';
+            if (humidity <= 80) return 'Hơi ẩm';
+            return 'Rất ẩm';
+        }
+
+        function getAqiColorClass(aqi) {
+            switch(aqi) {
+                case 1: return 'var(--accent-green)';
+                case 2: return '#84cc16';
+                case 3: return 'var(--accent-yellow)';
+                case 4: return '#f97316';
+                case 5: return 'var(--accent-red)';
+                default: return 'var(--text-muted)';
+            }
+        }
+
         // --- TOAST ERROR ---
         function showErrorToast(msg) {
             toastError.textContent = msg || 'Không tìm thấy thành phố! Vui lòng thử lại.';
@@ -1143,16 +1118,37 @@
         // --- FETCH WEATHER API ---
         async function fetchWeather(city) {
             try {
-                const response = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
-                if (!response.ok) {
-                    const errData = await response.json();
-                    throw new Error(errData.error || 'Lỗi lấy dữ liệu');
+                let data;
+                if (window.location.protocol === 'file:') {
+                    const apiKey = OWM_API_KEY || '4ce67ac76f1be720585c9e959bba0444';
+                    
+                    // 1. Current Weather
+                    const currentRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=vi`);
+                    if (!currentRes.ok) throw new Error('Không tìm thấy thành phố!');
+                    const current = await currentRes.json();
+                    
+                    // 2. Forecast
+                    const forecastRes = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=vi`);
+                    const forecast = forecastRes.ok ? await forecastRes.json() : null;
+                    
+                    // 3. Air Pollution
+                    const lat = current.coord.lat;
+                    const lon = current.coord.lon;
+                    const airRes = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`);
+                    const airQuality = airRes.ok ? await airRes.json() : null;
+                    
+                    data = { current, forecast, airQuality };
+                } else {
+                    const response = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error || 'Lỗi lấy dữ liệu');
+                    }
+                    data = await response.json();
                 }
-                const data = await response.json();
+                
                 currentWeatherData = data;
                 renderUI(data);
-                
-                // Save last queried city
                 localStorage.setItem('lastCity', city);
             } catch (err) {
                 console.error(err);
@@ -1179,7 +1175,6 @@
             document.getElementById('currentTime').textContent = localDateTime.time;
             document.getElementById('currentDate').textContent = localDateTime.date;
 
-            // If location title includes code (like VN or US), format it beautifully
             const country = current.sys.country ? `, ${current.sys.country}` : '';
             searchInput.value = `${current.name}${country}`;
 
@@ -1201,7 +1196,7 @@
             document.getElementById('humidityVal').textContent = `${humidity}%`;
             document.getElementById('humiditySub').textContent = getHumidityDescription(humidity);
 
-            const windSpeedKmh = Math.round(current.wind.speed * 3.6); // Convert m/s to km/h
+            const windSpeedKmh = Math.round(current.wind.speed * 3.6);
             const windDirStr = getWindDirectionVN(current.wind.deg);
             document.getElementById('windVal').textContent = `${windSpeedKmh} km/h`;
             document.getElementById('windDirVal').textContent = windDirStr;
@@ -1237,12 +1232,11 @@
             renderOutlook(forecast);
 
             // 8. 6 Detailed Cards at Bottom
-            // Air Quality
             if (airQuality && airQuality.list && airQuality.list[0]) {
-                const aqi = airQuality.list[0].main.aqi; // 1 to 5
+                const aqi = airQuality.list[0].main.aqi;
                 const aqiDesc = getAqiDescription(aqi);
                 const pm2_5 = airQuality.list[0].components.pm2_5;
-                document.getElementById('aqiVal').textContent = Math.round(pm2_5 * 2.1); // Estimate US AQI from PM2.5 roughly
+                document.getElementById('aqiVal').textContent = Math.round(pm2_5 * 2.1);
                 document.getElementById('aqiFooter').textContent = `Chất lượng: ${aqiDesc}`;
                 document.getElementById('aqiFooter').style.color = getAqiColorClass(aqi);
                 document.getElementById('aqiBar').style.width = `${aqi * 20}%`;
@@ -1253,16 +1247,13 @@
                 document.getElementById('aqiBar').style.width = '0%';
             }
 
-            // UV Index Detail
             document.getElementById('detailUvVal').textContent = uvIndex.toFixed(1);
             document.getElementById('detailUvFooter').textContent = `Mức độ: ${uvDesc}`;
             document.getElementById('detailUvBar').style.width = `${(uvIndex / 11) * 100}%`;
 
-            // Dew Point Detail
             document.getElementById('detailDewPointVal').textContent = `${formatTemp(dewPointC)}`;
             document.getElementById('detailDewPointFooter').textContent = getDewPointComfort(dewPointC);
 
-            // Sunrise / Sunset
             const formatTime = (timestamp) => {
                 const date = new Date((timestamp + timezoneOffset) * 1000 - (new Date().getTimezoneOffset() * 60000));
                 const h = String(date.getUTCHours()).padStart(2, '0');
@@ -1272,14 +1263,11 @@
             document.getElementById('sunriseVal').textContent = formatTime(current.sys.sunrise);
             document.getElementById('sunsetVal').textContent = `Hoàng hôn: ${formatTime(current.sys.sunset)}`;
 
-            // Humidity Detail
             document.getElementById('detailHumidityVal').textContent = `${humidity}%`;
             document.getElementById('detailHumidityFooter').textContent = `Hiện tại ẩm ${getHumidityDescription(humidity).toLowerCase()}`;
             document.getElementById('detailHumidityBar').style.width = `${humidity}%`;
 
-            // Pressure Detail
             document.getElementById('detailPressureVal').textContent = `${pressure} hPa`;
-            // Calculate progress relative to standard range (950 - 1050 hPa)
             const pressurePct = Math.max(0, Math.min(100, ((pressure - 950) / 100) * 100));
             document.getElementById('detailPressureBar').style.width = `${pressurePct}%`;
         }
@@ -1288,16 +1276,11 @@
         function renderHourlyForecast(forecast, timezoneOffset) {
             const container = document.getElementById('hourlyList');
             container.innerHTML = '';
-
             if (!forecast || !forecast.list) return;
-
-            // Take the first 6 items for 18 hours (every 3 hours)
             const list = forecast.list.slice(0, 6);
-
             list.forEach((item, index) => {
                 const date = new Date((item.dt + timezoneOffset) * 1000 - (new Date().getTimezoneOffset() * 60000));
                 let hourStr = '';
-
                 if (index === 0) {
                     hourStr = 'Bây giờ';
                 } else {
@@ -1306,26 +1289,21 @@
                     const displayHour = h % 12 === 0 ? 12 : h % 12;
                     hourStr = `${displayHour} ${ampm}`;
                 }
-
                 const temp = item.main.temp;
                 const icon = item.weather[0].icon;
-                const pop = Math.round(item.pop * 100); // Probability of precipitation (0 to 1)
-
+                const pop = Math.round(item.pop * 100);
                 const itemDiv = document.createElement('div');
                 itemDiv.className = `hourly-item ${index === 0 ? 'active' : ''}`;
-                
                 let popHtml = '';
                 if (pop > 0) {
                     popHtml = `<span class="hourly-pop">${pop}%</span>`;
                 }
-
                 itemDiv.innerHTML = `
                     <span class="hourly-time">${hourStr}</span>
                     ${getWeatherIconSVG(icon, 'hourly-icon')}
                     <span class="hourly-temp">${formatTemp(temp)}</span>
                     ${popHtml}
                 `;
-
                 container.appendChild(itemDiv);
             });
         }
@@ -1334,17 +1312,14 @@
         function renderOutlook(forecast) {
             const container = document.getElementById('outlookList');
             container.innerHTML = '';
-
             if (!forecast || !forecast.list) return;
 
-            // Group 3-hour forecasts by day
             const dailyData = {};
             const daysOfWeek = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
 
             forecast.list.forEach((item) => {
                 const date = new Date(item.dt * 1000);
                 const dateKey = date.toDateString();
-
                 if (!dailyData[dateKey]) {
                     dailyData[dateKey] = {
                         temps: [],
@@ -1358,24 +1333,19 @@
                 dailyData[dateKey].pops.push(item.pop);
             });
 
-            // Convert to array of days
             const days = Object.values(dailyData).map((d) => {
                 return {
                     date: d.dateObj,
                     tempMin: Math.min(...d.temps),
                     tempMax: Math.max(...d.temps),
-                    // Most common icon
                     icon: d.icons[Math.floor(d.icons.length / 2)], 
                     pop: Math.max(...d.pops)
                 };
             });
 
-            // If we have less than 7 days (usually OpenWeatherMap 5-day gives 5 or 6 calendar days), 
-            // extrapolate the rest based on the last day with slight variations to ensure exactly 7 days
             while (days.length < 7) {
                 const lastDay = days[days.length - 1];
                 const nextDate = new Date(lastDay.date.getTime() + 24 * 60 * 60 * 1000);
-                // Slight random variation (-1.5 to +1.5 degrees)
                 const variation = (Math.random() * 3) - 1.5;
                 days.push({
                     date: nextDate,
@@ -1386,12 +1356,10 @@
                 });
             }
 
-            // Find absolute weekly min and max temp to scale range bars
             const weeklyMin = Math.min(...days.map(d => d.tempMin));
             const weeklyMax = Math.max(...days.map(d => d.tempMax));
             const weeklyRange = weeklyMax - weeklyMin;
 
-            // Render first 7 days
             days.slice(0, 7).forEach((day, index) => {
                 let dayLabel = '';
                 if (index === 0) {
@@ -1399,11 +1367,8 @@
                 } else {
                     dayLabel = daysOfWeek[day.date.getDay()];
                 }
-
                 const popPct = Math.round(day.pop * 100);
                 const popHtml = popPct > 0 ? `${popPct}%` : '';
-
-                // Calculate relative bar position
                 const leftPct = weeklyRange > 0 ? ((day.tempMin - weeklyMin) / weeklyRange) * 100 : 0;
                 const widthPct = weeklyRange > 0 ? ((day.tempMax - day.tempMin) / weeklyRange) * 100 : 100;
 
@@ -1428,14 +1393,10 @@
         // --- RENDER LINE CHART (CHART.JS) ---
         function renderChart(forecast) {
             const ctx = document.getElementById('tempTrendChart').getContext('2d');
-
             if (!forecast || !forecast.list) return;
-
-            // Gather the first 8 intervals for 24h trend (approx)
             const list = forecast.list.slice(0, 8);
             const labels = [];
             const temps = [];
-
             list.forEach((item, index) => {
                 const date = new Date(item.dt * 1000);
                 let label = '';
@@ -1448,19 +1409,15 @@
                     label = `${displayHour} ${ampm}`;
                 }
                 labels.push(label);
-
-                // Convert based on unit
                 const tempC = item.main.temp;
                 const val = (currentUnit === 'C') ? Math.round(tempC) : cToF(tempC);
                 temps.push(val);
             });
 
-            // Destroy previous chart if it exists
             if (chartInstance) {
                 chartInstance.destroy();
             }
 
-            // Create linear gradient for fill
             const gradient = ctx.createLinearGradient(0, 0, 0, 180);
             gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
             gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
@@ -1535,8 +1492,38 @@
         window.addEventListener('DOMContentLoaded', () => {
             const savedCity = localStorage.getItem('lastCity') || 'Hanoi';
             fetchWeather(savedCity);
-        });
 
+            // Add click events to redirect to individual sub-pages
+            const miniCards = document.querySelectorAll('.main-right-grid .mini-card');
+            const miniFeatures = ['humidity', 'wind', 'visibility', 'pressure', 'uv', 'dewpoint'];
+            miniCards.forEach((card, index) => {
+                card.addEventListener('click', () => {
+                    const cityVal = searchInput ? searchInput.value.trim() : savedCity;
+                    if (window.location.protocol === 'file:') {
+                        const filename = `Weather_${miniFeatures[index].charAt(0).toUpperCase() + miniFeatures[index].slice(1)}.html`;
+                        window.location.href = `${filename}?city=${encodeURIComponent(cityVal)}`;
+                    } else {
+                        window.location.href = `/weather/${miniFeatures[index]}?city=${encodeURIComponent(cityVal)}`;
+                    }
+                });
+            });
+
+            const detailCards = document.querySelectorAll('.details-grid .detail-card');
+            const detailFeatures = ['aqi', 'uv', 'dewpoint', 'sunrise_sunset', 'humidity', 'pressure'];
+            detailCards.forEach((card, index) => {
+                card.addEventListener('click', () => {
+                    const cityVal = searchInput ? searchInput.value.trim() : savedCity;
+                    if (window.location.protocol === 'file:') {
+                        let feat = detailFeatures[index];
+                        if (feat === 'sunrise_sunset') feat = 'Sunrise_sunset';
+                        else feat = feat.charAt(0).toUpperCase() + feat.slice(1);
+                        window.location.href = `Weather_${feat}.html?city=${encodeURIComponent(cityVal)}`;
+                    } else {
+                        window.location.href = `/weather/${detailFeatures[index]}?city=${encodeURIComponent(cityVal)}`;
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>

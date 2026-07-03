@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atmos - Chi tiết Chỉ số UV</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Prata&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #080b11;
+            --bg-glow-1: rgba(29, 78, 216, 0.15);
+            --bg-glow-2: rgba(139, 92, 246, 0.1);
+            --card-bg: rgba(15, 23, 42, 0.45);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-yellow: #f59e0b;
+            --font-main: 'Outfit', sans-serif;
+            --font-serif: 'Prata', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, var(--bg-glow-1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, var(--bg-glow-2) 0%, transparent 40%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            padding: 24px;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        
+        .detail-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .btn-back {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-main);
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(-2px);
+        }
+        
+        .detail-header-sep {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+        
+        .detail-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-size: 1.1rem;
+        }
+        
+        .detail-title-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            background-color: var(--accent-yellow);
+        }
+        
+        .detail-header-right {
+            text-align: right;
+        }
+        
+        .detail-location {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .detail-time {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        /* Stats Grid Section */
+        .detail-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .detail-stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px 24px;
+            backdrop-filter: blur(20px);
+        }
+        
+        .detail-stat-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .detail-stat-value-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .detail-stat-value-huge {
+            font-family: var(--font-serif);
+            font-size: 3rem;
+            line-height: 1;
+            font-weight: 400;
+        }
+        
+        .detail-stat-value-sub {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .detail-stat-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+        }
+        
+        /* Filter and Chart Section */
+        .detail-chart-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            backdrop-filter: blur(20px);
+        }
+        
+        .detail-chart-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .range-selector {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--card-border);
+            border-radius: 30px;
+            padding: 4px;
+        }
+        
+        .range-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 0 12px;
+            letter-spacing: 0.05em;
+        }
+        
+        .range-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-main);
+        }
+        
+        .range-btn:hover {
+            color: var(--text-primary);
+        }
+        
+        .range-btn.active {
+            color: #fff;
+            background-color: var(--accent-yellow);
+        }
+        
+        .detail-legend {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+        }
+        
+        .legend-line {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+            display: inline-block;
+        }
+        
+        .detail-chart-wrapper {
+            position: relative;
+            height: 320px;
+            width: 100%;
+        }
+        
+        /* Table Section */
+        .detail-table-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            backdrop-filter: blur(20px);
+        }
+        
+        .table-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+        }
+        
+        .table-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--text-primary);
+            text-transform: uppercase;
+        }
+        
+        .table-count-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        
+        .log-table-wrapper {
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        
+        .log-table th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding: 12px 16px;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            background: #080b11;
+            z-index: 10;
+        }
+        
+        .log-table td {
+            font-size: 0.9rem;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+        }
+        
+        .log-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-primary);
+        }
+        
+        .log-table tr.active-row td {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .log-bullet {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+            background-color: var(--accent-yellow);
+        }
+        
+        /* Mobile responsive detail view */
+        @media (max-width: 768px) {
+            .detail-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .detail-stat-value-huge {
+                font-size: 2.2rem;
+            }
+            .detail-chart-toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .range-selector {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="detail-header">
+            <div class="detail-header-left">
+                <button id="btnBack" class="btn-back">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Quay lại
+                </button>
+                <div class="detail-header-sep">|</div>
+                <div class="detail-title-wrapper">
+                    <span class="detail-title-dot"></span>
+                    <span>CHỈ SỐ UV</span>
+                </div>
+            </div>
+            <div class="detail-header-right">
+                <div id="detailLocation" class="detail-location">--</div>
+                <div id="detailDateTime" class="detail-time">--</div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="detail-stats-grid">
+            <div class="detail-stat-card">
+                <div class="detail-stat-label">Hiện tại</div>
+                <div class="detail-stat-value-row">
+                    <span class="detail-stat-value-huge" id="valStat1">--</span>
+                    <span class="detail-stat-value-sub" id="subValStat1">--</span>
+                </div>
+                <div class="detail-stat-desc">Chỉ số bức xạ tia cực tím - từng phút một</div>
+            </div>
+
+            <div class="detail-stat-card">
+                <div class="detail-stat-label">Cao nhất</div>
+                <div class="detail-stat-value-row">
+                    <span class="detail-stat-value-huge" id="valStat2">--</span>
+                    <span class="detail-stat-value-sub">mức tối đa</span>
+                </div>
+                <div class="detail-stat-desc">Cường độ UV cao nhất được ghi nhận</div>
+            </div>
+
+            <div class="detail-stat-card">
+                <div class="detail-stat-label">Trung bình</div>
+                <div class="detail-stat-value-row">
+                    <span class="detail-stat-value-huge" id="valStat3">--</span>
+                    <span class="detail-stat-value-sub">mức trung bình</span>
+                </div>
+                <div class="detail-stat-desc">Mức độ ảnh hưởng trung bình</div>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="detail-chart-section">
+            <div class="detail-chart-toolbar">
+                <div class="range-selector">
+                    <span class="range-label">PHẠM VI</span>
+                    <button class="range-btn" data-range="1H">1H</button>
+                    <button class="range-btn active" data-range="3H">3H</button>
+                    <button class="range-btn" data-range="6H">6H</button>
+                    <button class="range-btn" data-range="12H">12H</button>
+                    <button class="range-btn" data-range="24H">24H</button>
+                </div>
+                
+                <div class="detail-legend">
+                    <div class="legend-item">
+                        <span class="legend-line" style="background-color: var(--accent-yellow);"></span>
+                        <span>Chỉ số UV</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-chart-wrapper">
+                <canvas id="detailChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Log List Section -->
+        <div class="detail-table-section">
+            <div class="table-header-row">
+                <span class="table-title">NHẬT KÝ CHI TIẾT</span>
+                <span class="table-count-info" id="logEntryCount">180 mục · mới nhất trước</span>
+            </div>
+            
+            <div class="log-table-wrapper">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>THỜI GIAN</th>
+                            <th>CHỈ SỐ UV</th>
+                            <th>TRẠNG THÁI</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script scope -->
+    <script th:inline="javascript">
+        let currentWeatherData = /*[[${data}]]*/ null;
+        let currentCity = /*[[${city}]]*/ 'Hanoi';
+
+        let activeRange = '3H';
+        let detailChartInstance = null;
+
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        if (window.location.protocol === 'file:') {
+            currentCity = getQueryParam('city') || 'Hanoi';
+        }
+
+        function formatDateTime(timezoneOffset) {
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const localDate = new Date(utc + (timezoneOffset * 1000));
+            const hours = String(localDate.getHours()).padStart(2, '0');
+            const minutes = String(localDate.getMinutes()).padStart(2, '0');
+            const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            const dayName = days[localDate.getDay()];
+            const date = localDate.getDate();
+            const month = localDate.getMonth() + 1;
+            return {
+                time: `${hours}:${minutes}`,
+                date: `${dayName}, Ngày ${date}/${month}`
+            };
+        }
+
+        function getUvDescription(uv) {
+            if (uv <= 2) return 'Thấp';
+            if (uv <= 5) return 'Trung bình';
+            if (uv <= 7) return 'Cao';
+            if (uv <= 10) return 'Rất cao';
+            return 'Nguy hại';
+        }
+
+        function generateDetailData(rangeCode, currentVal) {
+            const pointsCount = rangeCode === '1H' ? 60 : (rangeCode === '3H' ? 180 : (rangeCode === '6H' ? 180 : (rangeCode === '12H' ? 144 : 144)));
+            const minutesInterval = rangeCode === '1H' ? 1 : (rangeCode === '3H' ? 1 : (rangeCode === '6H' ? 2 : (rangeCode === '12H' ? 5 : 10)));
+            const nowMs = Date.now();
+            const dataPoints = [];
+            const labels = [];
+            
+            let baseVal = parseFloat(currentVal) || 0;
+
+            for (let i = pointsCount - 1; i >= 0; i--) {
+                const timeOffsetMs = -i * minutesInterval * 60 * 1000;
+                const entryTime = new Date(nowMs + timeOffsetMs);
+                const hh = String(entryTime.getHours()).padStart(2, '0');
+                const mm = String(entryTime.getMinutes()).padStart(2, '0');
+                labels.push(`${hh}:${mm}`);
+                
+                const hour = entryTime.getHours();
+                const min = entryTime.getMinutes();
+                const decimalHour = hour + min / 60;
+                let uvFactor = 0;
+                if (decimalHour >= 6 && decimalHour <= 18) {
+                    uvFactor = Math.sin(((decimalHour - 6) / 12) * Math.PI);
+                }
+                
+                let val = baseVal * uvFactor + (Math.random() - 0.5) * 0.15;
+                if (val < 0) val = 0;
+                dataPoints.push(parseFloat(val.toFixed(1)));
+            }
+            
+            if (dataPoints.length > 0) {
+                dataPoints[dataPoints.length - 1] = parseFloat(currentVal) || 0;
+            }
+            return { labels, dataPoints };
+        }
+
+        function renderDetailChart(labels, dataPoints) {
+            const ctx = document.getElementById('detailChart').getContext('2d');
+            if (detailChartInstance) {
+                detailChartInstance.destroy();
+            }
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, '#f59e0b4D');
+            gradient.addColorStop(1, '#f59e0b00');
+            
+            detailChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Chỉ số UV',
+                            data: dataPoints,
+                            borderColor: '#f59e0b',
+                            borderWidth: 2,
+                            backgroundColor: gradient,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: labels.length > 100 ? 0 : 2,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#f59e0b'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.02)' },
+                            ticks: { color: '#64748b', maxTicksLimit: 8 }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                            ticks: { color: '#64748b' }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function fetchWeatherDirect(city) {
+            try {
+                const apiKey = '4ce67ac76f1be720585c9e959bba0444';
+                const currentRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=vi`);
+                if (!currentRes.ok) throw new Error('Không tìm thấy thành phố!');
+                const current = await currentRes.json();
+                
+                const forecastRes = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=vi`);
+                const forecast = forecastRes.ok ? await forecastRes.json() : null;
+                
+                const lat = current.coord.lat;
+                const lon = current.coord.lon;
+                const airRes = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`);
+                const airQuality = airRes.ok ? await airRes.json() : null;
+                
+                currentWeatherData = { current, forecast, airQuality };
+                updateUI();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function updateUI() {
+            if (!currentWeatherData) return;
+            const current = currentWeatherData.current;
+            
+            const country = current.sys.country ? `, ${current.sys.country}` : '';
+            document.getElementById('detailLocation').textContent = `${current.name}${country}`;
+            
+            const localDateTime = formatDateTime(current.timezone);
+            document.getElementById('detailDateTime').textContent = `${localDateTime.date} - ${localDateTime.time}`;
+            
+            const lat = current.coord.lat;
+            const clouds = current.clouds.all;
+            const timezoneOffset = current.timezone;
+            const weatherId = current.weather[0].id;
+            
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const localDate = new Date(utc + (timezoneOffset * 1000));
+            const localHour = localDate.getHours() + localDate.getMinutes() / 60;
+            let currentVal = 0;
+            if (localHour >= 6 && localHour <= 18) {
+                const latRad = Math.abs(lat) * Math.PI / 180;
+                let maxUV = 11.5 * Math.cos(latRad);
+                if (maxUV < 3) maxUV = 3;
+                let baseUV = maxUV * Math.cos((localHour - 12) * Math.PI / 12);
+                if (baseUV < 0) baseUV = 0;
+                let uv = baseUV * (1 - (clouds / 100) * 0.65);
+                if (weatherId < 700) uv *= 0.25;
+                currentVal = Math.min(11, Math.round(uv * 10) / 10);
+            }
+
+            const generated = generateDetailData(activeRange, currentVal);
+            
+            document.getElementById('valStat1').textContent = currentVal.toFixed(1);
+            document.getElementById('subValStat1').textContent = getUvDescription(currentVal);
+            
+            const peakUV = Math.max(...generated.dataPoints);
+            document.getElementById('valStat2').textContent = peakUV.toFixed(1);
+            
+            const avgUV = generated.dataPoints.reduce((a, b) => a + b, 0) / generated.dataPoints.length;
+            document.getElementById('valStat3').textContent = avgUV.toFixed(1);
+            
+            const tbody = document.getElementById('logTableBody');
+            tbody.innerHTML = '';
+            const len = generated.labels.length;
+            document.getElementById('logEntryCount').textContent = `${len} mục · mới nhất trước`;
+            
+            for (let i = len - 1; i >= 0; i--) {
+                const tr = document.createElement('tr');
+                if (i === len - 1) tr.className = 'active-row';
+                
+                const tdTime = document.createElement('td');
+                if (i === len - 1) {
+                    const bullet = document.createElement('span');
+                    bullet.className = 'log-bullet';
+                    tdTime.appendChild(bullet);
+                    tdTime.appendChild(document.createTextNode(` ${generated.labels[i]}`));
+                } else {
+                    tdTime.textContent = generated.labels[i];
+                }
+                tr.appendChild(tdTime);
+                
+                const tdVal = document.createElement('td');
+                tdVal.textContent = generated.dataPoints[i].toFixed(1);
+                if (i === len - 1) {
+                    tdVal.style.color = 'var(--accent-yellow)';
+                    tdVal.style.fontWeight = 'bold';
+                }
+                tr.appendChild(tdVal);
+                
+                const tdDesc = document.createElement('td');
+                tdDesc.textContent = getUvDescription(generated.dataPoints[i]);
+                tr.appendChild(tdDesc);
+                
+                tbody.appendChild(tr);
+            }
+            
+            renderDetailChart(generated.labels, generated.dataPoints);
+        }
+
+        document.getElementById('btnBack').addEventListener('click', () => {
+            if (window.location.protocol === 'file:') {
+                window.location.href = `index.html?city=${encodeURIComponent(currentCity)}`;
+            } else {
+                window.location.href = `/weather?city=${encodeURIComponent(currentCity)}`;
+            }
+        });
+
+        const rangeBtns = document.querySelectorAll('.range-selector .range-btn');
+        rangeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                rangeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeRange = btn.getAttribute('data-range');
+                updateUI();
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.location.protocol === 'file:' || !currentWeatherData) {
+                fetchWeatherDirect(currentCity);
+            } else {
+                updateUI();
+            }
+        });
+    </script>
+</body>
+</html>
