@@ -1106,6 +1106,14 @@
             }
         }
 
+        function getDewPointComfort(dewPointC) {
+            if (dewPointC <= 12) return 'Dễ chịu, Khô ráo';
+            if (dewPointC <= 16) return 'Thoải mái';
+            if (dewPointC <= 20) return 'Ẩm ướt nhẹ';
+            if (dewPointC <= 24) return 'Khó chịu';
+            return 'Cực kỳ ngột ngạt';
+        }
+
         // --- TOAST ERROR ---
         function showErrorToast(msg) {
             toastError.textContent = msg || 'Không tìm thấy thành phố! Vui lòng thử lại.';
@@ -1129,13 +1137,21 @@
                     
                     // 2. Forecast
                     const forecastRes = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=vi`);
-                    const forecast = forecastRes.ok ? await forecastRes.json() : null;
+                    if (!forecastRes.ok) {
+                        const txt = await forecastRes.text();
+                        throw new Error("Lỗi dự báo: " + forecastRes.status + " - " + txt);
+                    }
+                    const forecast = await forecastRes.json();
                     
                     // 3. Air Pollution
                     const lat = current.coord.lat;
                     const lon = current.coord.lon;
                     const airRes = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`);
-                    const airQuality = airRes.ok ? await airRes.json() : null;
+                    if (!airRes.ok) {
+                        const txt = await airRes.text();
+                        throw new Error("Lỗi AQI: " + airRes.status + " - " + txt);
+                    }
+                    const airQuality = await airRes.json();
                     
                     data = { current, forecast, airQuality };
                 } else {
@@ -1223,13 +1239,25 @@
             document.getElementById('dewPointSub').textContent = getDewPointComfort(dewPointC);
 
             // 5. Hourly Forecast (24-Hour)
-            renderHourlyForecast(forecast, timezoneOffset);
+            try {
+                renderHourlyForecast(forecast, timezoneOffset);
+            } catch (e) {
+                console.error("Lỗi hiển thị dự báo theo giờ:", e);
+            }
 
             // 6. Temperature Trend Line Chart
-            renderChart(forecast);
+            try {
+                renderChart(forecast);
+            } catch (e) {
+                console.error("Lỗi hiển thị biểu đồ nhiệt độ:", e);
+            }
 
             // 7. 7-Day Outlook
-            renderOutlook(forecast);
+            try {
+                renderOutlook(forecast);
+            } catch (e) {
+                console.error("Lỗi hiển thị dự báo 7 ngày:", e);
+            }
 
             // 8. 6 Detailed Cards at Bottom
             if (airQuality && airQuality.list && airQuality.list[0]) {
@@ -1524,6 +1552,12 @@
                 });
             });
         });
+
+        // Bắt lỗi JS toàn cục và hiển thị thông báo đỏ trên màn hình
+        window.onerror = function(message, source, lineno, colno, error) {
+            showErrorToast("Lỗi JS: " + message + " (Dòng " + lineno + ")");
+            return false;
+        };
     </script>
 </body>
 </html>
