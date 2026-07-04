@@ -667,6 +667,53 @@
             flex-direction: column;
             gap: 6px;
         }
+
+        /* Clickable indicator on "Dự báo 7 ngày" */
+        .outlook-row {
+            cursor: pointer;
+            transition: background-color 0.25s, transform 0.2s;
+        }
+
+        .outlook-row:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            transform: translateX(4px);
+        }
+
+        /* Clickable indicator on "Dự báo 24 giờ" */
+        .hourly-forecast-card {
+            cursor: pointer;
+        }
+
+        .hourly-forecast-card:hover .section-title {
+            color: var(--accent-blue);
+        }
+
+        .hourly-forecast-card .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            transition: color 0.25s;
+        }
+
+        .hourly-forecast-card .section-title::after {
+            content: 'Xem bản đồ ↗';
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.15);
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            opacity: 0.8;
+            transition: all 0.25s;
+        }
+
+        .hourly-forecast-card:hover .section-title::after {
+            opacity: 1;
+            background: rgba(59, 130, 246, 0.25);
+        }
     </style>
 </head>
 <body>
@@ -1551,6 +1598,34 @@
                     }
                 });
             });
+
+            // Add click event to "Dự báo 24 giờ" card to navigate to Weather Map page
+            const hourlyHeader = document.querySelector('.mid-grid .card .section-title');
+            if (hourlyHeader) {
+                const hourlyCard = hourlyHeader.closest('.card');
+                if (hourlyCard) {
+                    hourlyCard.classList.add('hourly-forecast-card');
+                    hourlyCard.addEventListener('click', (e) => {
+                        if (e.target.closest('.hourly-item')) return;
+                        
+                        const cityVal = searchInput ? searchInput.value.trim() : savedCity;
+                        
+                        let avgPop = 0.5;
+                        if (currentWeatherData && currentWeatherData.forecast && currentWeatherData.forecast.list) {
+                            const list = currentWeatherData.forecast.list.slice(0, 4);
+                            const pops = list.map(item => item.pop || 0);
+                            avgPop = pops.reduce((a, b) => a + b, 0) / pops.length;
+                        }
+                        
+                        const lowTemp = parseFloat(document.getElementById('lowTemp').textContent) || 20;
+                        const highTemp = parseFloat(document.getElementById('highTemp').textContent) || 30;
+                        const icon = currentWeatherData && currentWeatherData.current ? currentWeatherData.current.weather[0].icon : '09d';
+                        
+                        const targetPage = window.location.protocol === 'file:' ? 'Weather_Map.html' : '/weather/map';
+                        window.location.href = `${targetPage}?city=${encodeURIComponent(cityVal)}&pop=${avgPop}&tempMin=${lowTemp}&tempMax=${highTemp}&icon=${icon}&dayLabel=${encodeURIComponent('Hôm nay')}`;
+                    });
+                }
+            }
         });
 
         // Bắt lỗi JS toàn cục và hiển thị thông báo đỏ trên màn hình

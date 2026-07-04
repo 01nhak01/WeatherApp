@@ -19,8 +19,8 @@ public class WeatherService {
         Map<String, Object> response = new HashMap<>();
 
         // 1. Fetch current weather
-        String currentWeatherUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + apiKey + "&units=metric&lang=vi";
-        Map<String, Object> currentData = restTemplate.getForObject(currentWeatherUrl, Map.class);
+        String currentWeatherUrl = "https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric&lang=vi";
+        Map<String, Object> currentData = restTemplate.getForObject(currentWeatherUrl, Map.class, city, apiKey);
         if (currentData == null) {
             throw new RuntimeException("Không tìm thấy thành phố!");
         }
@@ -34,8 +34,8 @@ public class WeatherService {
 
             // 2. Fetch air quality
             try {
-                String airPollutionUrl = "https://api.openweathermap.org/data/2.5/air_pollution?lat=" + lat + "&lon=" + lon + "&appid=" + apiKey;
-                Map<String, Object> airData = restTemplate.getForObject(airPollutionUrl, Map.class);
+                String airPollutionUrl = "https://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={apiKey}";
+                Map<String, Object> airData = restTemplate.getForObject(airPollutionUrl, Map.class, lat, lon, apiKey);
                 response.put("airQuality", airData);
             } catch (Exception e) {
                 System.err.println("Error fetching air quality: " + e.getMessage());
@@ -44,8 +44,8 @@ public class WeatherService {
 
         // 3. Fetch forecast
         try {
-            String forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + apiKey + "&units=metric&lang=vi";
-            Map<String, Object> forecastData = restTemplate.getForObject(forecastUrl, Map.class);
+            String forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={apiKey}&units=metric&lang=vi";
+            Map<String, Object> forecastData = restTemplate.getForObject(forecastUrl, Map.class, city, apiKey);
             response.put("forecast", forecastData);
         } catch (Exception e) {
             System.err.println("Error fetching forecast: " + e.getMessage());

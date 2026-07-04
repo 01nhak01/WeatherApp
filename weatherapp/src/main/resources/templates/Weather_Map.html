@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atmos Weather - Bản đồ thời tiết</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Prata&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        :root {
+            --bg-color: #060913;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --font-main: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            overflow: hidden;
+            line-height: 1.5;
+        }
+
+        .map-screen-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        /* Leaflet Map Div */
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #060913;
+        }
+
+        /* Custom Leaflet Marker Styling */
+        .location-bubble-marker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none !important;
+        }
+
+        .bubble-pill {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 40px;
+            padding: 8px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 12px 30px rgba(0, 0, 0, 0.6), 
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
+            animation: markerFloat 4s ease-in-out infinite;
+            white-space: nowrap;
+            z-index: 999;
+        }
+
+        @keyframes markerFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .bubble-main {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bubble-icon-span svg {
+            width: 24px;
+            height: 24px;
+            stroke: #ffffff;
+            fill: none;
+            filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.5));
+        }
+
+        .bubble-temp-span {
+            font-family: 'Instrument Serif', 'Prata', serif;
+            font-style: italic;
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: #ffffff;
+            line-height: 1;
+        }
+
+        .marker-city {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.6);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+
+        .marker-dot {
+            width: 8px;
+            height: 8px;
+            background: #ffffff;
+            border: 2px solid #060913;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ffffff;
+            margin-top: 4px;
+        }
+
+        /* Rainfall Legend (Top-Left) */
+        .map-legend {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 16px 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            min-width: 140px;
+            transition: all 0.3s ease;
+        }
+
+        .legend-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #94a3b8;
+        }
+
+        .legend-bar-wrapper {
+            display: flex;
+            gap: 14px;
+            height: 130px;
+        }
+
+        .legend-gradient {
+            width: 8px;
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(180deg, 
+                #ffffff 0%, 
+                #ffeb3b 15%, 
+                #ffc107 30%, 
+                #e91e63 45%, 
+                #9c27b0 60%, 
+                #673ab7 75%, 
+                #311b92 90%, 
+                #0b1d3a 100%
+            );
+            transition: background 0.5s ease;
+        }
+
+        .legend-labels {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* Map Controls (Top-Right) */
+        .map-controls {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .control-tile {
+            width: 44px;
+            height: 44px;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #cbd5e1;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            outline: none;
+        }
+
+        .control-tile:hover {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        .control-tile:active {
+            transform: scale(0.95);
+        }
+
+        .control-tile svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        #mapCompassBtn svg {
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #mapCompassBtn:hover svg {
+            transform: rotate(360deg);
+        }
+
+        .layer-badge {
+            position: absolute;
+            bottom: -18px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            background: rgba(15, 23, 42, 0.8);
+            color: #3b82f6;
+            padding: 1px 4px;
+            border-radius: 3px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            text-transform: uppercase;
+            white-space: nowrap;
+            transition: color 0.3s;
+        }
+
+        /* 12-Hour Scrubber Panel (Bottom) */
+        .map-scrubber-panel {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            right: 24px;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 18px 28px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            max-width: 1352px;
+            margin: 0 auto;
+        }
+
+        .scrubber-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .play-pause-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #060913;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(255, 255, 255, 0.25);
+            outline: none;
+        }
+
+        .play-pause-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 22px rgba(255, 255, 255, 0.45);
+        }
+
+        .play-pause-btn:active {
+            transform: scale(0.95);
+        }
+
+        .play-pause-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            stroke: none;
+        }
+
+        .scrubber-timeline-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 44px;
+        }
+
+        .scrubber-ticks-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            position: absolute;
+            top: -2px;
+            padding: 0 9px;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+
+        .scrubber-tick {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .scrubber-tick::before {
+            content: '';
+            width: 2px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            margin-bottom: 4px;
+            border-radius: 1px;
+        }
+
+        .scrubber-tick.major::before {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.45);
+        }
+
+        .scrubber-slider-wrapper {
+            position: relative;
+            width: 100%;
+            height: 24px;
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        #mapScrubberRange {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            z-index: 3;
+        }
+
+        #mapScrubberRange::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 12px #ffffff, 0 2px 6px rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            z-index: 4;
+        }
+
+        #mapScrubberRange::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+
+        #mapScrubberRange::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 12px #ffffff, 0 2px 6px rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            z-index: 4;
+        }
+
+        #mapScrubberRange::-moz-range-thumb:hover {
+            transform: scale(1.25);
+        }
+
+        .scrubber-track-fill {
+            position: absolute;
+            left: 0;
+            height: 6px;
+            background: #3b82f6;
+            border-radius: 3px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .scrubber-now-marker {
+            position: absolute;
+            top: -24px;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .now-label {
+            font-size: 0.6rem;
+            background: #3b82f6;
+            color: #ffffff;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+        }
+
+        .now-line {
+            width: 2px;
+            height: 32px;
+            background: #3b82f6;
+            margin-top: 2px;
+            opacity: 0.85;
+        }
+
+        .scrubber-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-top: 4px;
+        }
+
+        .scrubber-date {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        /* HUD Coordinates overlay */
+        .map-coords-hud {
+            position: absolute;
+            left: 24px;
+            bottom: 110px;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(8px);
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: monospace;
+            font-size: 9px;
+            color: rgba(59, 130, 246, 0.7);
+            z-index: 10;
+            line-height: 1.4;
+            pointer-events: none;
+        }
+
+        /* Leaflet tile correction (replaces default blue overlays) */
+        .leaflet-tile-container {
+            filter: saturate(1.2) contrast(1.05);
+        }
+
+        /* Top-Left Close "Xong" button styling */
+        .close-btn-text {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.25s;
+        }
+
+        .close-btn-text:hover {
+            background: rgba(30, 41, 59, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .close-btn-text:active {
+            transform: scale(0.95);
+        }
+
+        /* Shift legend down since Back button takes top-left */
+        .map-legend {
+            top: 90px;
+        }
+
+        @media (max-width: 768px) {
+            .map-legend {
+                top: auto;
+                bottom: 120px;
+                left: 24px;
+                height: auto;
+            }
+            .legend-bar-wrapper {
+                height: 90px;
+            }
+            .map-controls {
+                top: 24px;
+                right: 24px;
+            }
+            .map-coords-hud {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SVG Icon Templates fragment -->
+    <div th:replace="~{fragments/icons :: icons}"></div>
+
+    <div class="map-screen-container">
+        <!-- Leaflet Map element replaces static Canvas -->
+        <div id="map"></div>
+        
+        <!-- Top-Left: "Xong" Back Button -->
+        <button id="mapCloseBtn" class="close-btn-text">Xong</button>
+
+        <!-- Top-Left: Rainfall Legend -->
+        <div class="map-legend">
+            <div class="legend-title" id="mapLegendTitle">Lượng mưa</div>
+            <div class="legend-bar-wrapper">
+                <div class="legend-gradient" id="mapLegendGradient"></div>
+                <div class="legend-labels" id="mapLegendLabels">
+                    <span>Rất lớn</span>
+                    <span>Lớn</span>
+                    <span>Vừa</span>
+                    <span>Nhỏ</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top-Right: Map Controls -->
+        <div class="map-controls">
+            <button id="mapCompassBtn" class="control-tile" title="Vị trí của bạn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+            </button>
+            <button id="mapMenuBtn" class="control-tile" title="Danh sách">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            </button>
+            <button id="mapLayersBtn" class="control-tile" title="Lớp bản đồ">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                <span class="layer-badge" id="layerBadge">Radar</span>
+            </button>
+        </div>
+        
+        <!-- Bottom-Left: Live Terminal Coordinates overlay -->
+        <div class="map-coords-hud" id="mapCoordsHud">
+            SYS.GRID.RADAR // LOC: Hanoi (21.0200N, 105.8300E)<br>
+            ZOOM: 9x // SCANNING FOR LIVE RETURNS<br>
+            TILE PROVIDER: CARTO.DARK_MATTER // MAPS: OPENWEATHERMAP
+        </div>
+        
+        <!-- Bottom: 12-Hour Scrubber Panel -->
+        <div class="map-scrubber-panel">
+            <div class="scrubber-controls">
+                <button id="mapPlayPauseBtn" class="play-pause-btn">
+                    <!-- Play Icon -->
+                    <svg id="playIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <!-- Pause Icon -->
+                    <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                </button>
+                
+                <div class="scrubber-timeline-container">
+                    <div class="scrubber-ticks-container" id="scrubberTicks"></div>
+                    <div class="scrubber-slider-wrapper">
+                        <div class="scrubber-track-fill" id="scrubberFill"></div>
+                        <input type="range" id="mapScrubberRange" min="8" max="22" step="0.02" value="12">
+                        <div class="scrubber-now-marker" id="scrubberNowMarker" style="display:none;">
+                            <span class="now-label">Bây giờ</span>
+                            <div class="now-line"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="scrubber-info">
+                <span style="font-weight:700;">Dự báo 12 giờ</span>
+                <span class="scrubber-date" id="mapScrubberDate">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS Library -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Map Logic Script -->
+    <script th:inline="javascript">
+        // Helper function to return custom weather icon SVG
+        function getWeatherIconSVG(iconCode, sizeClass = 'condition-icon') {
+            let svgId = 'svg-clear';
+            if (iconCode.startsWith('01')) svgId = 'svg-clear';
+            else if (iconCode.startsWith('02')) svgId = 'svg-partly-cloudy';
+            else if (iconCode.startsWith('03') || iconCode.startsWith('04')) svgId = 'svg-cloudy';
+            else if (iconCode.startsWith('09') || iconCode.startsWith('10')) svgId = 'svg-rain';
+            else if (iconCode.startsWith('11')) svgId = 'svg-storm';
+            else if (iconCode.startsWith('13')) svgId = 'svg-snow';
+            else if (iconCode.startsWith('50')) svgId = 'svg-mist';
+
+            return `<svg class="${sizeClass}" viewBox="0 0 24 24"><use xlink:href="#${svgId}"></use></svg>`;
+        }
+
+        // --- FORECAST MAP SCREEN LOGIC ---
+        (function() {
+            // Map instance reference
+            let map = null;
+            let weatherLayer = null;
+            let markerInstance = null;
+            
+            // Map Data State (Hydrated from Thymeleaf model or URL query params)
+            let currentCity = 'Hanoi';
+            let currentPop = 0.5; // Probability of precipitation
+            let tempMinC = 20;    // °C
+            let tempMaxC = 30;    // °C
+            let conditionIcon = '09d';
+            let timezoneOffset = 25200; // default Hanoi
+            let forecastDateStr = 'Hôm nay';
+            
+            // Default center coordinates (will be updated dynamically)
+            let lat = 21.0285; // Hanoi lat
+            let lon = 105.8542; // Hanoi lon
+
+            // API key from Thymeleaf
+            let apiKey = /*[[${apiKey}]]*/ '';
+            if (!apiKey || apiKey === '${apiKey}') {
+                apiKey = '4ce67ac76f1be720585c9e959bba0444';
+            }
+            
+            // Scrubber Play State
+            let currentHour = 12.0; // 08 to 22
+            let isPlaying = false;
+            let lastTime = 0;
+            let animationFrameId = null;
+            let pulseDirection = 1;
+            
+            // Map Layers
+            let activeLayer = 'precipitation'; 
+            const layers = ['precipitation', 'temperature', 'clouds'];
+
+            // --- INITIALIZE ---
+            window.addEventListener('DOMContentLoaded', () => {
+                hydrateData();
+                initLeafletMap();
+                initScrubberUIElements();
+            });
+
+            // Parse URL parameters to customize current forecast day
+            function hydrateData() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const queryCity = urlParams.get('city');
+                if (queryCity) currentCity = queryCity;
+
+                // Load thymeleaf model data
+                const modelData = /*[[${data}]]*/ null;
+                let hasRealCoords = false;
+
+                if (modelData && modelData.current) {
+                    const cur = modelData.current;
+                    
+                    if (cur.timezone !== undefined && cur.timezone !== null) {
+                        const parsedTz = parseInt(cur.timezone);
+                        if (!Number.isNaN(parsedTz)) timezoneOffset = parsedTz;
+                    }
+                    
+                    // Grab real coordinates from model
+                    if (cur.coord) {
+                        lat = cur.coord.lat;
+                        lon = cur.coord.lon;
+                        hasRealCoords = true;
+                    }
+                    
+                    if (cur.main) {
+                        if (cur.main.temp_min !== undefined) {
+                            const val = parseFloat(cur.main.temp_min);
+                            if (!Number.isNaN(val)) tempMinC = val;
+                        }
+                        if (cur.main.temp_max !== undefined) {
+                            const val = parseFloat(cur.main.temp_max);
+                            if (!Number.isNaN(val)) tempMaxC = val;
+                        }
+                    }
+                    conditionIcon = cur.weather[0].icon;
+                    
+                    if (modelData.forecast && modelData.forecast.list) {
+                        const list = modelData.forecast.list.slice(0, 4);
+                        const pops = list.map(item => item.pop || 0);
+                        currentPop = pops.reduce((a, b) => a + b, 0) / pops.length;
+                    }
+                }
+
+                // Read overrides from URL search params (sent from index.html clicks)
+                const paramPop = urlParams.get('pop');
+                if (paramPop !== null) currentPop = parseFloat(paramPop);
+
+                const paramTempMin = urlParams.get('tempMin');
+                if (paramTempMin !== null) {
+                    const parsed = parseFloat(paramTempMin);
+                    if (!Number.isNaN(parsed)) tempMinC = parsed;
+                }
+
+                const paramTempMax = urlParams.get('tempMax');
+                if (paramTempMax !== null) {
+                    const parsed = parseFloat(paramTempMax);
+                    if (!Number.isNaN(parsed)) tempMaxC = parsed;
+                }
+
+                const paramIcon = urlParams.get('icon');
+                if (paramIcon) conditionIcon = paramIcon;
+
+                const paramDayLabel = urlParams.get('dayLabel');
+                if (paramDayLabel) {
+                    forecastDateStr = paramDayLabel;
+                } else {
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    forecastDateStr = new Date().toLocaleDateString('vi-VN', options);
+                }
+
+                // Hydrate details
+                document.getElementById('mapScrubberDate').textContent = forecastDateStr;
+
+                // Dynamic geocoding fetch if coordinates are not provided by Thymeleaf model (e.g. running in file:// protocol)
+                if (!hasRealCoords) {
+                    let cleanCity = currentCity.split(',')[0].trim();
+                    const geocodingUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cleanCity)}&appid=${apiKey}&units=metric&lang=vi`;
+                    fetch(geocodingUrl)
+                        .then(res => {
+                            if (!res.ok) throw new Error("City not found");
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (data && data.coord) {
+                                lat = data.coord.lat;
+                                lon = data.coord.lon;
+                                if (data.timezone !== undefined && data.timezone !== null) {
+                                    const parsedTz = parseInt(data.timezone);
+                                    if (!Number.isNaN(parsedTz)) timezoneOffset = parsedTz;
+                                }
+                                
+                                // Re-center map and update marker
+                                if (map) {
+                                    map.setView([lat, lon], 9);
+                                    addLocationMarker();
+                                    updateWeatherLayer();
+                                    setupNowMarker();
+                                    setScrubberToLocalHour();
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Dynamic Geocoding failed:", err);
+                        });
+                }
+            }
+
+            function initLeafletMap() {
+                // Initialize map container focused on target lat, lon
+                map = L.map('map', {
+                    zoomControl: false,
+                    attributionControl: false,
+                    fadeAnimation: true,
+                    zoomAnimation: true
+                }).setView([lat, lon], 9);
+
+                // Add premium CartoDB Dark Matter base map tiles (has Vietnamese province/city labels, thin borders and roads)
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 19,
+                    subdomains: 'abcd'
+                }).addTo(map);
+
+                // Load initial weather radar tiles (OpenWeatherMap Precipitation layer)
+                updateWeatherLayer();
+
+                // Add custom marker bubble for location
+                addLocationMarker();
+
+                // Add interactive mousemove listeners to show dynamic coordinates HUD
+                map.on('mousemove', (e) => {
+                    const hud = document.getElementById('mapCoordsHud');
+                    if (hud) {
+                        hud.innerHTML = `
+                            SYS.GRID.RADAR // LOC: ${currentCity} (${lat.toFixed(4)}N, ${lon.toFixed(4)}E)<br>
+                            CURSOR: ${e.latlng.lat.toFixed(4)}N, ${e.latlng.lng.toFixed(4)}E // ZOOM: ${map.getZoom()}x<br>
+                            TILE PROVIDER: CARTO.DARK_MATTER // MAPS: OPENWEATHERMAP
+                        `;
+                    }
+                });
+            }
+
+            function updateWeatherLayer() {
+                if (weatherLayer) {
+                    map.removeLayer(weatherLayer);
+                }
+
+                let layerName = 'precipitation_new';
+                if (activeLayer === 'temperature') layerName = 'temp_new';
+                else if (activeLayer === 'clouds') layerName = 'clouds_new';
+
+                const weatherUrl = `https://tile.openweathermap.org/map/${layerName}/{z}/{x}/{y}.png?appid=${apiKey}`;
+                
+                weatherLayer = L.tileLayer(weatherUrl, {
+                    maxZoom: 19,
+                    opacity: 0.8,
+                    zIndex: 100
+                }).addTo(map);
+            }
+
+            function addLocationMarker() {
+                if (markerInstance) {
+                    map.removeLayer(markerInstance);
+                }
+
+                const iconHtml = getWeatherIconSVG(conditionIcon);
+                const maxTempText = `${Math.round(tempMaxC)}°`;
+
+                // DivIcon container for custom marker bubble
+                const customIcon = L.divIcon({
+                    className: 'location-bubble-marker',
+                    html: `
+                        <div class="bubble-pill">
+                            <div class="bubble-main">
+                                <span class="bubble-icon-span">${iconHtml}</span>
+                                <span class="bubble-temp-span">${maxTempText}</span>
+                            </div>
+                        </div>
+                        <div class="marker-city">${currentCity}</div>
+                        <div class="marker-dot"></div>
+                    `,
+                    iconSize: [120, 80],
+                    iconAnchor: [60, 68]
+                });
+
+                markerInstance = L.marker([lat, lon], { icon: customIcon }).addTo(map);
+            }
+
+            function initScrubberUIElements() {
+                // Back Button: redirects back to dashboard with selected city
+                document.getElementById('mapCloseBtn').addEventListener('click', () => {
+                    if (window.location.protocol === 'file:') {
+                        window.location.href = `index.html?city=${encodeURIComponent(currentCity)}`;
+                    } else {
+                        window.location.href = `/weather?city=${encodeURIComponent(currentCity)}`;
+                    }
+                });
+
+                // Compass Button: Re-centers map on city coordinates
+                document.getElementById('mapCompassBtn').addEventListener('click', () => {
+                    map.setView([lat, lon], 9, { animate: true });
+                });
+                
+                // Scrubber slider input
+                const rangeInput = document.getElementById('mapScrubberRange');
+                rangeInput.addEventListener('input', (e) => {
+                    currentHour = parseFloat(e.target.value);
+                    updateScrubberUI();
+                });
+                
+                // Play/Pause button
+                document.getElementById('mapPlayPauseBtn').addEventListener('click', togglePlay);
+                
+                // Layers selection
+                document.getElementById('mapLayersBtn').addEventListener('click', cycleLayers);
+
+                // Menu/List button: redirects to dashboard
+                document.getElementById('mapMenuBtn').addEventListener('click', () => {
+                    document.getElementById('mapCloseBtn').click();
+                });
+
+                setupNowMarker();
+                setScrubberToLocalHour();
+
+                // Generate timeline scrubber tick markers
+                const ticksContainer = document.getElementById('scrubberTicks');
+                ticksContainer.innerHTML = '';
+                const tickHours = [8, 9, 10, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+                tickHours.forEach(h => {
+                    const tick = document.createElement('div');
+                    tick.className = 'scrubber-tick major';
+                    const displayHour = String(h).padStart(2, '0');
+                    tick.innerHTML = `<span style="margin-top: 4px;">${displayHour}</span>`;
+                    ticksContainer.appendChild(tick);
+                });
+            }
+
+            function setScrubberToLocalHour() {
+                const utc = new Date().getTime() + (new Date().getTimezoneOffset() * 60000);
+                const cityLocalDate = new Date(utc + (timezoneOffset * 1000));
+                const localHour = cityLocalDate.getHours() + cityLocalDate.getMinutes() / 60;
+                
+                if (localHour >= 8 && localHour <= 22) {
+                    currentHour = localHour;
+                } else {
+                    currentHour = 12.0;
+                }
+                
+                document.getElementById('mapScrubberRange').value = currentHour;
+                updateScrubberUI();
+            }
+
+            function setupNowMarker() {
+                const utc = new Date().getTime() + (new Date().getTimezoneOffset() * 60000);
+                const cityLocalDate = new Date(utc + (timezoneOffset * 1000));
+                const localHour = cityLocalDate.getHours() + cityLocalDate.getMinutes() / 60;
+                
+                const nowMarker = document.getElementById('scrubberNowMarker');
+                if (localHour >= 8 && localHour <= 22) {
+                    const pct = ((localHour - 8) / 14) * 100;
+                    nowMarker.style.left = `${pct}%`;
+                    nowMarker.style.display = 'flex';
+                } else {
+                    nowMarker.style.display = 'none';
+                }
+            }
+
+            function togglePlay() {
+                isPlaying = !isPlaying;
+                const playIcon = document.getElementById('playIcon');
+                const pauseIcon = document.getElementById('pauseIcon');
+                
+                if (isPlaying) {
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
+                    lastTime = performance.now();
+                    animationFrameId = requestAnimationFrame(animationLoop);
+                } else {
+                    playIcon.style.display = 'block';
+                    pauseIcon.style.display = 'none';
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                }
+            }
+
+            function animationLoop(timestamp) {
+                if (!isPlaying) return;
+                
+                const now = timestamp || performance.now();
+                let dt = (now - lastTime) / 1000;
+                if (Number.isNaN(dt) || dt < 0 || dt > 1.0) {
+                    dt = 0;
+                }
+                lastTime = now;
+                
+                currentHour += dt * 1.5;
+                if (currentHour > 22) {
+                    currentHour = 8.0;
+                }
+                
+                document.getElementById('mapScrubberRange').value = currentHour;
+                updateScrubberUI();
+                
+                // Modulate opacity dynamically to simulate active radar pulses sweeps
+                if (weatherLayer) {
+                    let op = parseFloat(weatherLayer.options.opacity);
+                    if (Number.isNaN(op)) op = 0.8;
+                    op += pulseDirection * 0.012;
+                    if (op >= 0.85) {
+                        op = 0.85;
+                        pulseDirection = -1;
+                    } else if (op <= 0.55) {
+                        op = 0.55;
+                        pulseDirection = 1;
+                    }
+                    weatherLayer.setOpacity(op);
+                }
+                
+                animationFrameId = requestAnimationFrame(animationLoop);
+            }
+
+            function updateScrubberUI() {
+                const pct = ((currentHour - 8) / 14) * 100;
+                document.getElementById('scrubberFill').style.width = `${pct}%`;
+                
+                // Interpolate location bubble temp based on scrubber hour
+                const peakHour = 15.0;
+                const diff = Math.abs(currentHour - peakHour) / 7.0;
+                const tempFactor = 1.0 - Math.min(1.0, Math.max(0, diff * diff));
+                
+                const tMin = Number.isNaN(tempMinC) ? 20 : tempMinC;
+                const tMax = Number.isNaN(tempMaxC) ? 30 : tempMaxC;
+                
+                const currentTempC = tMin + (tMax - tMin) * (0.2 + 0.8 * tempFactor);
+                const tempSpan = document.querySelector('.bubble-temp-span');
+                if (tempSpan) {
+                    tempSpan.textContent = `${Math.round(currentTempC)}°`;
+                }
+            }
+
+            function cycleLayers() {
+                const index = layers.indexOf(activeLayer);
+                activeLayer = layers[(index + 1) % layers.length];
+                
+                const badge = document.getElementById('layerBadge');
+                const title = document.getElementById('mapLegendTitle');
+                const gradient = document.getElementById('mapLegendGradient');
+                const labels = document.getElementById('mapLegendLabels');
+                
+                if (activeLayer === 'precipitation') {
+                    badge.textContent = 'Radar';
+                    title.textContent = 'Lượng mưa';
+                    badge.style.color = '#3b82f6';
+                    gradient.style.background = 'linear-gradient(180deg, #ffffff 0%, #ffeb3b 15%, #ffc107 30%, #e91e63 45%, #9c27b0 60%, #673ab7 75%, #311b92 90%, #0b1d3a 100%)';
+                    labels.innerHTML = '<span>Rất lớn</span><span>Lớn</span><span>Vừa</span><span>Nhỏ</span>';
+                } else if (activeLayer === 'temperature') {
+                    badge.textContent = 'Nhiệt độ';
+                    title.textContent = 'Nhiệt độ';
+                    badge.style.color = '#ef4444';
+                    gradient.style.background = 'linear-gradient(180deg, #ef4444 0%, #f97316 20%, #eab308 40%, #22c55e 60%, #06b6d4 80%, #3b82f6 100%)';
+                    labels.innerHTML = '<span>Nóng</span><span>Ấm</span><span>Mát</span><span>Lạnh</span>';
+                } else if (activeLayer === 'clouds') {
+                    badge.textContent = 'Lớp mây';
+                    title.textContent = 'Lớp mây';
+                    badge.style.color = '#94a3b8';
+                    gradient.style.background = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 35%, #94a6b8 70%, #1e293b 100%)';
+                    labels.innerHTML = '<span>Âm u</span><span>Nhiều mây</span><span>Ít mây</span><span>Quang</span>';
+                }
+                
+                updateWeatherLayer();
+            }
+
+        })();
+    </script>
+</body>
+</html>
