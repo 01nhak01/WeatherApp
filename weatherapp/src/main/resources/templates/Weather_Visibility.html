@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atmos - Chi tiết Tầm nhìn</title>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Prata&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -20,7 +20,7 @@
             --text-muted: #64748b;
             --accent-green: #10b981;
             --font-main: 'Outfit', sans-serif;
-            --font-serif: 'Prata', serif;
+            --font-serif: 'Outfit', sans-serif;
         }
 
         * {
@@ -509,14 +509,13 @@
 
         function formatDateTime(timezoneOffset) {
             const now = new Date();
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const localDate = new Date(utc + (timezoneOffset * 1000));
-            const hours = String(localDate.getHours()).padStart(2, '0');
-            const minutes = String(localDate.getMinutes()).padStart(2, '0');
+            const localDate = new Date(now.getTime() + (timezoneOffset * 1000));
+            const hours = String(localDate.getUTCHours()).padStart(2, '0');
+            const minutes = String(localDate.getUTCMinutes()).padStart(2, '0');
             const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-            const dayName = days[localDate.getDay()];
-            const date = localDate.getDate();
-            const month = localDate.getMonth() + 1;
+            const dayName = days[localDate.getUTCDay()];
+            const date = localDate.getUTCDate();
+            const month = localDate.getUTCMonth() + 1;
             return {
                 time: `${hours}:${minutes}`,
                 date: `${dayName}, Ngày ${date}/${month}`
@@ -635,7 +634,7 @@
             const localDateTime = formatDateTime(current.timezone);
             document.getElementById('detailDateTime').textContent = `${localDateTime.date} - ${localDateTime.time}`;
             
-            const currentVal = current.visibility / 1000; // km
+            const currentVal = (current.visibility !== undefined && current.visibility !== null) ? current.visibility / 1000 : 10; // km
             const generated = generateDetailData(activeRange, currentVal);
             
             document.getElementById('valStat1').textContent = `${currentVal.toFixed(1)} km`;

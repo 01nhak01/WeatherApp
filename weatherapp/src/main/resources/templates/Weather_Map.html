@@ -7,7 +7,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Prata&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Leaflet Map CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -106,10 +106,9 @@
         }
 
         .bubble-temp-span {
-            font-family: 'Instrument Serif', 'Prata', serif;
-            font-style: italic;
-            font-size: 1.8rem;
-            font-weight: 300;
+            font-family: var(--font-main);
+            font-size: 1.5rem;
+            font-weight: 500;
             color: #ffffff;
             line-height: 1;
         }
@@ -935,9 +934,8 @@
             }
 
             function setScrubberToLocalHour() {
-                const utc = new Date().getTime() + (new Date().getTimezoneOffset() * 60000);
-                const cityLocalDate = new Date(utc + (timezoneOffset * 1000));
-                const localHour = cityLocalDate.getHours() + cityLocalDate.getMinutes() / 60;
+                const cityLocalDate = new Date(new Date().getTime() + (timezoneOffset * 1000));
+                const localHour = cityLocalDate.getUTCHours() + cityLocalDate.getUTCMinutes() / 60;
                 
                 if (localHour >= 8 && localHour <= 22) {
                     currentHour = localHour;
@@ -950,9 +948,8 @@
             }
 
             function setupNowMarker() {
-                const utc = new Date().getTime() + (new Date().getTimezoneOffset() * 60000);
-                const cityLocalDate = new Date(utc + (timezoneOffset * 1000));
-                const localHour = cityLocalDate.getHours() + cityLocalDate.getMinutes() / 60;
+                const cityLocalDate = new Date(new Date().getTime() + (timezoneOffset * 1000));
+                const localHour = cityLocalDate.getUTCHours() + cityLocalDate.getUTCMinutes() / 60;
                 
                 const nowMarker = document.getElementById('scrubberNowMarker');
                 if (localHour >= 8 && localHour <= 22) {

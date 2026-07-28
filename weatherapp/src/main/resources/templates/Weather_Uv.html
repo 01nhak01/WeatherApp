@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atmos - Chi tiết Chỉ số UV</title>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Prata&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -20,7 +20,7 @@
             --text-muted: #64748b;
             --accent-yellow: #f59e0b;
             --font-main: 'Outfit', sans-serif;
-            --font-serif: 'Prata', serif;
+            --font-serif: 'Outfit', sans-serif;
         }
 
         * {
@@ -509,14 +509,13 @@
 
         function formatDateTime(timezoneOffset) {
             const now = new Date();
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const localDate = new Date(utc + (timezoneOffset * 1000));
-            const hours = String(localDate.getHours()).padStart(2, '0');
-            const minutes = String(localDate.getMinutes()).padStart(2, '0');
+            const localDate = new Date(now.getTime() + (timezoneOffset * 1000));
+            const hours = String(localDate.getUTCHours()).padStart(2, '0');
+            const minutes = String(localDate.getUTCMinutes()).padStart(2, '0');
             const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-            const dayName = days[localDate.getDay()];
-            const date = localDate.getDate();
-            const month = localDate.getMonth() + 1;
+            const dayName = days[localDate.getUTCDay()];
+            const date = localDate.getUTCDate();
+            const month = localDate.getUTCMonth() + 1;
             return {
                 time: `${hours}:${minutes}`,
                 date: `${dayName}, Ngày ${date}/${month}`
@@ -658,9 +657,8 @@
             const weatherId = current.weather[0].id;
             
             const now = new Date();
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const localDate = new Date(utc + (timezoneOffset * 1000));
-            const localHour = localDate.getHours() + localDate.getMinutes() / 60;
+            const localDate = new Date(now.getTime() + (timezoneOffset * 1000));
+            const localHour = localDate.getUTCHours() + localDate.getUTCMinutes() / 60;
             let currentVal = 0;
             if (localHour >= 6 && localHour <= 18) {
                 const latRad = Math.abs(lat) * Math.PI / 180;

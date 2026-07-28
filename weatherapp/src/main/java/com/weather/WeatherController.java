@@ -31,8 +31,10 @@ public class WeatherController {
         try {
             Map<String, Object> data = weatherService.getWeatherData(city);
             model.addAttribute("data", data);
+            model.addAttribute("apiKey", apiKey);
         } catch (Exception e) {
             model.addAttribute("error", "Không tìm thấy thành phố!");
+            model.addAttribute("apiKey", apiKey);
         }
         return "index";
     }

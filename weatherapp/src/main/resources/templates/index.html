@@ -7,7 +7,7 @@
     <!-- Import Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Prata&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js for Temperature Trend -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -29,7 +29,7 @@
             --accent-purple: #a855f7;
             --accent-red: #ef4444;
             --font-main: 'Outfit', sans-serif;
-            --font-serif: 'Prata', serif;
+            --font-serif: 'Outfit', sans-serif;
         }
 
         * {
@@ -1052,9 +1052,8 @@
         function estimateUVIndex(lat, clouds, timezoneOffset, weatherId) {
             const now = new Date();
             // Get local time in the queried city
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const localDate = new Date(utc + (timezoneOffset * 1000));
-            const localHour = localDate.getHours() + localDate.getMinutes() / 60;
+            const localDate = new Date(now.getTime() + (timezoneOffset * 1000));
+            const localHour = localDate.getUTCHours() + localDate.getUTCMinutes() / 60;
 
             // UV index is 0 at night (6 PM to 6 AM)
             if (localHour < 6 || localHour > 18) {
@@ -1104,16 +1103,15 @@
         // Format Date to Vietnamese
         function formatDateTime(timezoneOffset) {
             const now = new Date();
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const localDate = new Date(utc + (timezoneOffset * 1000));
+            const localDate = new Date(now.getTime() + (timezoneOffset * 1000));
 
-            const hours = String(localDate.getHours()).padStart(2, '0');
-            const minutes = String(localDate.getMinutes()).padStart(2, '0');
+            const hours = String(localDate.getUTCHours()).padStart(2, '0');
+            const minutes = String(localDate.getUTCMinutes()).padStart(2, '0');
             
             const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-            const dayName = days[localDate.getDay()];
-            const date = localDate.getDate();
-            const month = localDate.getMonth() + 1;
+            const dayName = days[localDate.getUTCDay()];
+            const date = localDate.getUTCDate();
+            const month = localDate.getUTCMonth() + 1;
 
             return {
                 time: `${hours}:${minutes}`,
@@ -1170,44 +1168,76 @@
             }, 3000);
         }
 
+        async function fetchWeatherDirect(city) {
+            const apiKey = OWM_API_KEY || '4ce67ac76f1be720585c9e959bba0444';
+            
+            // 1. Current Weather
+            const currentRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=vi`);
+            if (!currentRes.ok) throw new Error('Không tìm thấy thành phố!');
+            const current = await currentRes.json();
+            
+            // 2. Forecast
+            const forecastRes = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=vi`);
+            if (!forecastRes.ok) {
+                const txt = await forecastRes.text();
+                throw new Error("Lỗi dự báo: " + forecastRes.status + " - " + txt);
+            }
+            const forecast = await forecastRes.json();
+            
+            // 3. Air Pollution
+            const lat = current.coord.lat;
+            const lon = current.coord.lon;
+            const airRes = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`);
+            if (!airRes.ok) {
+                const txt = await airRes.text();
+                throw new Error("Lỗi AQI: " + airRes.status + " - " + txt);
+            }
+            const airQuality = await airRes.json();
+            
+            return { current, forecast, airQuality };
+        }
+
         // --- FETCH WEATHER API ---
         async function fetchWeather(city) {
             try {
                 let data;
-                if (window.location.protocol === 'file:') {
-                    const apiKey = OWM_API_KEY || '4ce67ac76f1be720585c9e959bba0444';
-                    
-                    // 1. Current Weather
-                    const currentRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=vi`);
-                    if (!currentRes.ok) throw new Error('Không tìm thấy thành phố!');
-                    const current = await currentRes.json();
-                    
-                    // 2. Forecast
-                    const forecastRes = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=vi`);
-                    if (!forecastRes.ok) {
-                        const txt = await forecastRes.text();
-                        throw new Error("Lỗi dự báo: " + forecastRes.status + " - " + txt);
-                    }
-                    const forecast = await forecastRes.json();
-                    
-                    // 3. Air Pollution
-                    const lat = current.coord.lat;
-                    const lon = current.coord.lon;
-                    const airRes = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`);
-                    if (!airRes.ok) {
-                        const txt = await airRes.text();
-                        throw new Error("Lỗi AQI: " + airRes.status + " - " + txt);
-                    }
-                    const airQuality = await airRes.json();
-                    
-                    data = { current, forecast, airQuality };
+                const isLocalStaticFile = window.location.protocol === 'file:' || window.location.port === '63342';
+                
+                if (isLocalStaticFile) {
+                    data = await fetchWeatherDirect(city);
                 } else {
-                    const response = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
-                    if (!response.ok) {
-                        const errData = await response.json();
-                        throw new Error(errData.error || 'Lỗi lấy dữ liệu');
+                    try {
+                        const response = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+                        const contentType = response.headers.get('content-type');
+                        
+                        if (!response.ok) {
+                            if (response.status === 404) {
+                                console.warn("Backend returned 404, falling back to direct OpenWeatherMap API call");
+                                data = await fetchWeatherDirect(city);
+                            } else {
+                                let errMsg = 'Lỗi lấy dữ liệu';
+                                if (contentType && contentType.includes('application/json')) {
+                                    const errData = await response.json();
+                                    errMsg = errData.error || errMsg;
+                                } else {
+                                    errMsg = `Lỗi máy chủ (${response.status}): Hãy đảm bảo bạn truy cập qua cổng 8081 thay vì cổng xem trước của IntelliJ.`;
+                                }
+                                throw new Error(errMsg);
+                            }
+                        } else {
+                            if (!contentType || !contentType.includes('application/json')) {
+                                throw new Error(`Phản hồi từ máy chủ không hợp lệ (không phải JSON). Cổng đang dùng có thể sai.`);
+                            }
+                            data = await response.json();
+                        }
+                    } catch (backendErr) {
+                        console.warn("Backend API error, falling back to direct OWM fetch:", backendErr);
+                        try {
+                            data = await fetchWeatherDirect(city);
+                        } catch (directErr) {
+                            throw backendErr;
+                        }
                     }
-                    data = await response.json();
                 }
                 
                 currentWeatherData = data;
@@ -1301,7 +1331,7 @@
 
             // 7. 7-Day Outlook
             try {
-                renderOutlook(forecast);
+                renderOutlook(forecast, timezoneOffset);
             } catch (e) {
                 console.error("Lỗi hiển thị dự báo 7 ngày:", e);
             }
@@ -1330,7 +1360,7 @@
             document.getElementById('detailDewPointFooter').textContent = getDewPointComfort(dewPointC);
 
             const formatTime = (timestamp) => {
-                const date = new Date((timestamp + timezoneOffset) * 1000 - (new Date().getTimezoneOffset() * 60000));
+                const date = new Date((timestamp + timezoneOffset) * 1000);
                 const h = String(date.getUTCHours()).padStart(2, '0');
                 const m = String(date.getUTCMinutes()).padStart(2, '0');
                 return `${h}:${m}`;
@@ -1354,7 +1384,7 @@
             if (!forecast || !forecast.list) return;
             const list = forecast.list.slice(0, 6);
             list.forEach((item, index) => {
-                const date = new Date((item.dt + timezoneOffset) * 1000 - (new Date().getTimezoneOffset() * 60000));
+                const date = new Date((item.dt + timezoneOffset) * 1000);
                 let hourStr = '';
                 if (index === 0) {
                     hourStr = 'Bây giờ';
@@ -1384,7 +1414,7 @@
         }
 
         // --- RENDER OUTLOOK (7 DAYS) ---
-        function renderOutlook(forecast) {
+        function renderOutlook(forecast, timezoneOffset) {
             const container = document.getElementById('outlookList');
             container.innerHTML = '';
             if (!forecast || !forecast.list) return;
@@ -1393,7 +1423,7 @@
             const daysOfWeek = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
 
             forecast.list.forEach((item) => {
-                const date = new Date(item.dt * 1000);
+                const date = new Date((item.dt + timezoneOffset) * 1000 + (new Date().getTimezoneOffset() * 60000));
                 const dateKey = date.toDateString();
                 if (!dailyData[dateKey]) {
                     dailyData[dateKey] = {
@@ -1568,12 +1598,20 @@
             const savedCity = localStorage.getItem('lastCity') || 'Hanoi';
             fetchWeather(savedCity);
 
+            const getActiveCity = () => {
+                if (currentWeatherData && currentWeatherData.current && currentWeatherData.current.name) {
+                    return currentWeatherData.current.name;
+                }
+                const inputVal = searchInput ? searchInput.value.trim() : '';
+                return inputVal || savedCity;
+            };
+
             // Add click events to redirect to individual sub-pages
             const miniCards = document.querySelectorAll('.main-right-grid .mini-card');
             const miniFeatures = ['humidity', 'wind', 'visibility', 'pressure', 'uv', 'dewpoint'];
             miniCards.forEach((card, index) => {
                 card.addEventListener('click', () => {
-                    const cityVal = searchInput ? searchInput.value.trim() : savedCity;
+                    const cityVal = getActiveCity();
                     if (window.location.protocol === 'file:') {
                         const filename = `Weather_${miniFeatures[index].charAt(0).toUpperCase() + miniFeatures[index].slice(1)}.html`;
                         window.location.href = `${filename}?city=${encodeURIComponent(cityVal)}`;
@@ -1587,7 +1625,7 @@
             const detailFeatures = ['aqi', 'uv', 'dewpoint', 'sunrise_sunset', 'humidity', 'pressure'];
             detailCards.forEach((card, index) => {
                 card.addEventListener('click', () => {
-                    const cityVal = searchInput ? searchInput.value.trim() : savedCity;
+                    const cityVal = getActiveCity();
                     if (window.location.protocol === 'file:') {
                         let feat = detailFeatures[index];
                         if (feat === 'sunrise_sunset') feat = 'Sunrise_sunset';
@@ -1608,7 +1646,7 @@
                     hourlyCard.addEventListener('click', (e) => {
                         if (e.target.closest('.hourly-item')) return;
                         
-                        const cityVal = searchInput ? searchInput.value.trim() : savedCity;
+                        const cityVal = getActiveCity();
                         
                         let avgPop = 0.5;
                         if (currentWeatherData && currentWeatherData.forecast && currentWeatherData.forecast.list) {
@@ -1617,8 +1655,12 @@
                             avgPop = pops.reduce((a, b) => a + b, 0) / pops.length;
                         }
                         
-                        const lowTemp = parseFloat(document.getElementById('lowTemp').textContent) || 20;
-                        const highTemp = parseFloat(document.getElementById('highTemp').textContent) || 30;
+                        let lowTemp = 20;
+                        let highTemp = 30;
+                        if (currentWeatherData && currentWeatherData.current && currentWeatherData.current.main) {
+                            lowTemp = currentWeatherData.current.main.temp_min;
+                            highTemp = currentWeatherData.current.main.temp_max;
+                        }
                         const icon = currentWeatherData && currentWeatherData.current ? currentWeatherData.current.weather[0].icon : '09d';
                         
                         const targetPage = window.location.protocol === 'file:' ? 'Weather_Map.html' : '/weather/map';

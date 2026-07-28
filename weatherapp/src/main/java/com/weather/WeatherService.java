@@ -20,7 +20,12 @@ public class WeatherService {
 
         // 1. Fetch current weather
         String currentWeatherUrl = "https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric&lang=vi";
-        Map<String, Object> currentData = restTemplate.getForObject(currentWeatherUrl, Map.class, city, apiKey);
+        Map<String, Object> currentData;
+        try {
+            currentData = restTemplate.getForObject(currentWeatherUrl, Map.class, city, apiKey);
+        } catch (Exception e) {
+            throw new RuntimeException("Không tìm thấy thành phố!");
+        }
         if (currentData == null) {
             throw new RuntimeException("Không tìm thấy thành phố!");
         }
