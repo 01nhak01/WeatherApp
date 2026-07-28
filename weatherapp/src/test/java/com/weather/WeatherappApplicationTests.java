@@ -136,4 +136,10 @@ class WeatherappApplicationTests {
 		mockMvc.perform(get("/weather/wind").param("city", "Hanoi"))
 				.andExpect(status().isOk());
 	}
+
+	@Test
+	void testSearchApi() throws Exception {
+		mockMvc.perform(get("/api/weather/search").param("query", "Hanoi"))
+				.andExpect(status().isOk());
+	}
 }

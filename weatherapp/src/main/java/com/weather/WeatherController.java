@@ -44,4 +44,11 @@ public class WeatherController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+
+    @GetMapping("/api/weather/search")
+    @ResponseBody
+    public ResponseEntity<?> searchCitiesApi(@RequestParam String query) {
+        Object result = weatherService.searchCities(query);
+        return ResponseEntity.ok(result);
+    }
 }

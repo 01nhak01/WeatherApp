@@ -7,7 +7,7 @@
     <!-- Import Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js for Temperature Trend -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -28,8 +28,8 @@
             --accent-green: #10b981;
             --accent-purple: #a855f7;
             --accent-red: #ef4444;
-            --font-main: 'Outfit', sans-serif;
-            --font-serif: 'Outfit', sans-serif;
+            --font-main: 'Inter', sans-serif;
+            --font-serif: 'Inter', sans-serif;
         }
 
         * {
@@ -171,6 +171,53 @@
 
         .search-input::placeholder {
             color: var(--text-muted);
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            padding: 4px;
+        }
+
+        .search-suggestions.show {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-item:hover, .suggestion-item.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--text-primary);
+        }
+
+        .suggestion-country {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 6px;
+            border-radius: 4px;
         }
 
         .header-controls {
@@ -740,7 +787,8 @@
                     <circle cx="11" cy="11" r="8"></circle>
                     <path d="M21 21l-4.35-4.35"></path>
                 </svg>
-                <input type="text" id="searchInput" class="search-input" placeholder="Tìm kiếm thành phố (ví dụ: Hà Nội)..." value="Hanoi">
+                <input type="text" id="searchInput" class="search-input" placeholder="Tìm kiếm thành phố (ví dụ: Hà Nội)..." value="Hanoi" autocomplete="off">
+                <div id="searchSuggestions" class="search-suggestions"></div>
             </div>
 
             <div class="header-controls">
@@ -979,6 +1027,7 @@
         let currentUnit = 'C'; // 'C' or 'F'
         let currentWeatherData = null;
         let chartInstance = null;
+        const isStaticServer = window.location.protocol === 'file:' || window.location.port === '63342';
 
         // --- SELECTORS ---
         const searchInput = document.getElementById('searchInput');
@@ -987,11 +1036,216 @@
         const unitF = document.getElementById('unitF');
         const toastError = document.getElementById('toastError');
 
+        // --- SEARCH AUTOCOMPLETE SUGGESTIONS ---
+        const searchSuggestions = document.getElementById('searchSuggestions');
+        let selectedSuggestionIndex = -1;
+
+        const popularCities = [
+            { name: "Hà Nội", searchName: "Hanoi", ascii: "ha noi", country: "Việt Nam", code: "VN" },
+            { name: "Thành phố Hồ Chí Minh", searchName: "Ho Chi Minh City", ascii: "thanh pho ho chi minh", country: "Việt Nam", code: "VN", aliases: ["tphcm", "ho chi minh", "sai gon", "saigon"] },
+            { name: "Đà Nẵng", searchName: "Da Nang", ascii: "da nang", country: "Việt Nam", code: "VN" },
+            { name: "Hải Phòng", searchName: "Hai Phong", ascii: "hai phong", country: "Việt Nam", code: "VN" },
+            { name: "Cần Thơ", searchName: "Can Tho", ascii: "can tho", country: "Việt Nam", code: "VN" },
+            { name: "Nha Trang", searchName: "Nha Trang", ascii: "nha trang", country: "Việt Nam", code: "VN" },
+            { name: "Đà Lạt", searchName: "Da Lat", ascii: "da lat", country: "Việt Nam", code: "VN" },
+            { name: "Huế", searchName: "Hue", ascii: "hue", country: "Việt Nam", code: "VN" },
+            { name: "Vũng Tàu", searchName: "Vung Tau", ascii: "vung tau", country: "Việt Nam", code: "VN" },
+            { name: "Hạ Long", searchName: "Ha Long", ascii: "ha long", country: "Việt Nam", code: "VN" },
+            { name: "Quy Nhơn", searchName: "Quy Nhon", ascii: "quy nhon", country: "Việt Nam", code: "VN" },
+            { name: "Phan Thiết", searchName: "Phan Thiet", ascii: "phan thiet", country: "Việt Nam", code: "VN" },
+            { name: "Phú Quốc", searchName: "Phu Quoc", ascii: "phu quoc", country: "Việt Nam", code: "VN" },
+            { name: "Vinh", searchName: "Vinh", ascii: "vinh", country: "Việt Nam", code: "VN" },
+            { name: "Tokyo", searchName: "Tokyo, JP", ascii: "tokyo", country: "Nhật Bản", code: "JP" },
+            { name: "Seoul", searchName: "Seoul, KR", ascii: "seoul", country: "Hàn Quốc", code: "KR" },
+            { name: "Singapore", searchName: "Singapore, SG", ascii: "singapore", country: "Singapore", code: "SG" },
+            { name: "Bangkok", searchName: "Bangkok, TH", ascii: "bangkok", country: "Thái Lan", code: "TH" },
+            { name: "London", searchName: "London, GB", ascii: "london", country: "Vương Quốc Anh", code: "GB" },
+            { name: "Paris", searchName: "Paris, FR", ascii: "paris", country: "Pháp", code: "FR" },
+            { name: "New York", searchName: "New York, US", ascii: "new york", country: "Hoa Kỳ", code: "US" },
+            { name: "Sydney", searchName: "Sydney, AU", ascii: "sydney", country: "Úc", code: "AU" }
+        ];
+
+        function removeVietnameseTones(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+        }
+
+        let searchTimeout = null;
+
+        function getCountryName(code) {
+            const countries = {
+                "VN": "Việt Nam",
+                "JP": "Nhật Bản",
+                "KR": "Hàn Quốc",
+                "SG": "Singapore",
+                "TH": "Thái Lan",
+                "GB": "Vương Quốc Anh",
+                "FR": "Pháp",
+                "US": "Hoa Kỳ",
+                "AU": "Úc",
+                "RU": "Nga",
+                "DE": "Đức",
+                "CN": "Trung Quốc",
+                "IN": "Ấn Độ",
+                "CA": "Canada",
+                "BR": "Brazil",
+                "ZA": "Nam Phi"
+            };
+            return countries[code] || code;
+        }
+
+        function showSuggestions(query) {
+            const trimmed = query.trim();
+            if (!trimmed) {
+                hideSuggestions();
+                return;
+            }
+
+            if (isStaticServer) {
+                // Fallback for static preview (local filtering)
+                const cleanQuery = removeVietnameseTones(trimmed);
+                const matches = popularCities.filter(city => {
+                    const matchName = removeVietnameseTones(city.name).includes(cleanQuery);
+                    const matchCountry = removeVietnameseTones(city.country).includes(cleanQuery);
+                    const matchAlias = city.aliases && city.aliases.some(alias => removeVietnameseTones(alias).includes(cleanQuery));
+                    return matchName || matchCountry || matchAlias;
+                });
+                renderSuggestions(matches);
+            } else {
+                // Fetch from Backend Search Endpoint with 250ms debounce
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`/api/weather/search?query=${encodeURIComponent(trimmed)}`);
+                        if (!res.ok) throw new Error("Search API error");
+                        const data = await res.json();
+                        
+                        const matches = data.map(item => {
+                            let viName = item.local_names && item.local_names.vi ? item.local_names.vi : item.name;
+                            
+                            // Strip "Thành phố " or "Tỉnh " prefix from display name for cleaner suggestions
+                            if (viName.toLowerCase().startsWith("thành phố ")) {
+                                const temp = viName.substring(10).trim();
+                                if (temp.toLowerCase() !== "hồ chí minh" && temp.toLowerCase() !== "ho chi minh") {
+                                    viName = temp;
+                                }
+                            } else if (viName.toLowerCase().startsWith("tỉnh ")) {
+                                viName = viName.substring(5).trim();
+                            }
+                            
+                            const countryName = getCountryName(item.country);
+                            return {
+                                name: viName,
+                                searchName: `${item.name}, ${item.country}`,
+                                country: countryName
+                            };
+                        });
+                        
+                        renderSuggestions(matches);
+                    } catch (err) {
+                        console.error("Failed to fetch suggestions from backend:", err);
+                        // Fallback to local filtering on error
+                        const cleanQuery = removeVietnameseTones(trimmed);
+                        const matches = popularCities.filter(city => 
+                            removeVietnameseTones(city.name).includes(cleanQuery)
+                        );
+                        renderSuggestions(matches);
+                    }
+                }, 250);
+            }
+        }
+
+        function renderSuggestions(matches) {
+            if (!matches || matches.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            searchSuggestions.innerHTML = '';
+            selectedSuggestionIndex = -1;
+
+            matches.forEach((city) => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerHTML = `
+                    <span>${city.name}</span>
+                    <span class="suggestion-country">${city.country}</span>
+                `;
+                div.addEventListener('click', () => {
+                    searchInput.value = city.name;
+                    fetchWeather(city.searchName || city.name);
+                    hideSuggestions();
+                });
+                searchSuggestions.appendChild(div);
+            });
+
+            searchSuggestions.classList.add('show');
+        }
+
+        function hideSuggestions() {
+            searchSuggestions.classList.remove('show');
+            selectedSuggestionIndex = -1;
+        }
+
+        // Event listener for typing
+        searchInput.addEventListener('input', (e) => {
+            showSuggestions(e.target.value);
+        });
+
+        // Event listener for click outside to close suggestions
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-container')) {
+                hideSuggestions();
+            }
+        });
+
+        // Keyboard navigation (arrows and enter)
+        searchInput.addEventListener('keydown', (e) => {
+            const items = searchSuggestions.querySelectorAll('.suggestion-item');
+            if (!searchSuggestions.classList.contains('show') || items.length === 0) {
+                return;
+            }
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedSuggestionIndex = (selectedSuggestionIndex + 1) % items.length;
+                updateActiveSuggestion(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedSuggestionIndex = (selectedSuggestionIndex - 1 + items.length) % items.length;
+                updateActiveSuggestion(items);
+            } else if (e.key === 'Enter') {
+                if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < items.length) {
+                    e.preventDefault();
+                    items[selectedSuggestionIndex].click();
+                }
+            } else if (e.key === 'Escape') {
+                hideSuggestions();
+            }
+        });
+
+        function updateActiveSuggestion(items) {
+            items.forEach((item, index) => {
+                if (index === selectedSuggestionIndex) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
         // --- EVENT LISTENERS ---
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
+                const items = searchSuggestions.querySelectorAll('.suggestion-item');
+                if (searchSuggestions.classList.contains('show') && selectedSuggestionIndex >= 0 && selectedSuggestionIndex < items.length) {
+                    return; // Handled by keydown
+                }
                 const city = searchInput.value.trim();
-                if (city) fetchWeather(city);
+                if (city) {
+                    fetchWeather(city);
+                    hideSuggestions();
+                }
             }
         });
 
@@ -1196,6 +1450,18 @@
 
         // --- FETCH WEATHER API ---
         async function fetchWeather(city) {
+            // Clean up common Vietnamese descriptive prefixes that fail in OpenWeatherMap
+            let queryCity = city.trim();
+            if (queryCity.toLowerCase().startsWith("thành phố ")) {
+                const temp = queryCity.substring(10).trim();
+                // Exception for Hồ Chí Minh / HCM City
+                if (temp.toLowerCase() !== "hồ chí minh" && temp.toLowerCase() !== "ho chi minh") {
+                    queryCity = temp;
+                }
+            } else if (queryCity.toLowerCase().startsWith("tỉnh ")) {
+                queryCity = queryCity.substring(5).trim();
+            }
+
             try {
                 let data;
                 const isLocalStaticFile = window.location.protocol === 'file:' || window.location.port === '63342';
@@ -1554,8 +1820,8 @@
                                 }
                             },
                             backgroundColor: 'rgba(15, 23, 42, 0.85)',
-                            titleFont: { family: 'Outfit' },
-                            bodyFont: { family: 'Outfit' },
+                            titleFont: { family: 'Inter' },
+                            bodyFont: { family: 'Inter' },
                             borderColor: 'rgba(255,255,255,0.1)',
                             borderWidth: 1,
                             padding: 10,
@@ -1567,7 +1833,7 @@
                             grid: { display: false },
                             ticks: {
                                 color: '#64748b',
-                                font: { size: 10, family: 'Outfit' }
+                                font: { size: 10, family: 'Inter' }
                             },
                             border: { display: false }
                         },
@@ -1578,7 +1844,7 @@
                             },
                             ticks: {
                                 color: '#64748b',
-                                font: { size: 10, family: 'Outfit' },
+                                font: { size: 10, family: 'Inter' },
                                 callback: function(value) {
                                     return value + '°';
                                 }

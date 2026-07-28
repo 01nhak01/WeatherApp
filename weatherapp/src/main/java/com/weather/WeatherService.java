@@ -58,4 +58,14 @@ public class WeatherService {
 
         return response;
     }
+
+    public Object searchCities(String query) {
+        try {
+            String url = "https://api.openweathermap.org/geo/1.0/direct?q={query}&limit=8&appid={apiKey}";
+            return restTemplate.getForObject(url, Object.class, query, apiKey);
+        } catch (Exception e) {
+            System.err.println("Error searching cities: " + e.getMessage());
+            return new Object[0];
+        }
+    }
 }
