@@ -1595,6 +1595,8 @@
             const savedCity = localStorage.getItem('lastCity') || 'Hanoi';
             fetchWeather(savedCity);
 
+            const isStaticServer = window.location.protocol === 'file:' || window.location.port === '63342';
+
             const getActiveCity = () => {
                 if (currentWeatherData && currentWeatherData.current && currentWeatherData.current.name) {
                     return currentWeatherData.current.name;
@@ -1609,7 +1611,7 @@
             miniCards.forEach((card, index) => {
                 card.addEventListener('click', () => {
                     const cityVal = getActiveCity();
-                    if (window.location.protocol === 'file:') {
+                    if (isStaticServer) {
                         const filename = `Weather_${miniFeatures[index].charAt(0).toUpperCase() + miniFeatures[index].slice(1)}.html`;
                         window.location.href = `${filename}?city=${encodeURIComponent(cityVal)}`;
                     } else {
@@ -1623,7 +1625,7 @@
             detailCards.forEach((card, index) => {
                 card.addEventListener('click', () => {
                     const cityVal = getActiveCity();
-                    if (window.location.protocol === 'file:') {
+                    if (isStaticServer) {
                         let feat = detailFeatures[index];
                         if (feat === 'sunrise_sunset') feat = 'Sunrise_sunset';
                         else feat = feat.charAt(0).toUpperCase() + feat.slice(1);
@@ -1660,7 +1662,7 @@
                         }
                         const icon = currentWeatherData && currentWeatherData.current ? currentWeatherData.current.weather[0].icon : '09d';
                         
-                        const targetPage = window.location.protocol === 'file:' ? 'Weather_Map.html' : '/weather/map';
+                        const targetPage = isStaticServer ? 'Weather_Map.html' : '/weather/map';
                         window.location.href = `${targetPage}?city=${encodeURIComponent(cityVal)}&pop=${avgPop}&tempMin=${lowTemp}&tempMax=${highTemp}&icon=${icon}&dayLabel=${encodeURIComponent('Hôm nay')}`;
                     });
                 }

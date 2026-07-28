@@ -503,7 +503,9 @@
             return urlParams.get(param);
         }
 
-        if (window.location.protocol === 'file:') {
+        const isStaticServer = window.location.protocol === 'file:' || window.location.port === '63342';
+
+        if (isStaticServer) {
             currentCity = getQueryParam('city') || 'Hanoi';
         }
 
@@ -689,7 +691,7 @@
         }
 
         document.getElementById('btnBack').addEventListener('click', () => {
-            if (window.location.protocol === 'file:') {
+            if (isStaticServer) {
                 window.location.href = `index.html?city=${encodeURIComponent(currentCity)}`;
             } else {
                 window.location.href = `/weather?city=${encodeURIComponent(currentCity)}`;
@@ -707,7 +709,7 @@
         });
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (window.location.protocol === 'file:' || !currentWeatherData) {
+            if (isStaticServer || !currentWeatherData) {
                 fetchWeatherDirect(currentCity);
             } else {
                 updateUI();
