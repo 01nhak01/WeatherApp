@@ -14,15 +14,11 @@ import java.util.Map;
 @Controller
 public class WeatherController {
 
-    @Value("${weather.api.key}")
-    private String apiKey;
-
     @Autowired
     private WeatherService weatherService;
 
     @GetMapping("/")
     public String index(Model model) {
-        model.addAttribute("apiKey", apiKey);
         return "index";
     }
 
@@ -31,10 +27,8 @@ public class WeatherController {
         try {
             Map<String, Object> data = weatherService.getWeatherData(city);
             model.addAttribute("data", data);
-            model.addAttribute("apiKey", apiKey);
         } catch (Exception e) {
             model.addAttribute("error", "Không tìm thấy thành phố!");
-            model.addAttribute("apiKey", apiKey);
         }
         return "index";
     }

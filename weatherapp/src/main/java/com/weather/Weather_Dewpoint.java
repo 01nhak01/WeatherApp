@@ -1,7 +1,6 @@
 package com.weather;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,9 +9,6 @@ import java.util.Map;
 
 @Controller
 public class Weather_Dewpoint {
-
-    @Value("${weather.api.key}")
-    private String apiKey;
 
     @Autowired
     private WeatherService weatherService;
@@ -23,7 +19,6 @@ public class Weather_Dewpoint {
             Map<String, Object> data = weatherService.getWeatherData(city);
             model.addAttribute("data", data);
             model.addAttribute("city", city);
-            model.addAttribute("apiKey", apiKey);
         } catch (Exception e) {
             model.addAttribute("error", "Không tìm thấy thành phố!");
         }

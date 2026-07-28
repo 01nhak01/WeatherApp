@@ -974,10 +974,7 @@
     <!-- Toast Error Notification -->
     <div id="toastError" class="toast-error">Không tìm thấy thành phố! Vui lòng thử lại.</div>
 
-    <!-- Pass backend apiKey securely to global script scope -->
-    <script th:inline="javascript">
-        const OWM_API_KEY = /*[[${apiKey}]]*/ '4ce67ac76f1be720585c9e959bba0444';
-
+    <script>
         // --- GLOBAL STATE ---
         let currentUnit = 'C'; // 'C' or 'F'
         let currentWeatherData = null;
@@ -1169,7 +1166,7 @@
         }
 
         async function fetchWeatherDirect(city) {
-            const apiKey = OWM_API_KEY || '4ce67ac76f1be720585c9e959bba0444';
+            const apiKey = '4ce67ac76f1be720585c9e959bba0444';
             
             // 1. Current Weather
             const currentRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=vi`);

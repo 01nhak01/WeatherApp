@@ -672,11 +672,8 @@
             let lat = 21.0285; // Hanoi lat
             let lon = 105.8542; // Hanoi lon
 
-            // API key from Thymeleaf
-            let apiKey = /*[[${apiKey}]]*/ '';
-            if (!apiKey || apiKey === '${apiKey}') {
-                apiKey = '4ce67ac76f1be720585c9e959bba0444';
-            }
+            // API key for maps
+            const apiKey = '4ce67ac76f1be720585c9e959bba0444';
             
             // Scrubber Play State
             let currentHour = 12.0; // 08 to 22
