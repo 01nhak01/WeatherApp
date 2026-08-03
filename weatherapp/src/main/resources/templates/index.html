@@ -651,7 +651,7 @@
         }
 
         .detail-value {
-            font-size: 1.7rem;
+            font-size: 1.45rem;
             font-weight: 500;
             margin: 8px 0;
             line-height: 1.2;
@@ -760,6 +760,43 @@
         .hourly-forecast-card:hover .section-title::after {
             opacity: 1;
             background: rgba(59, 130, 246, 0.25);
+        }
+
+        .lifestyle-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+        }
+
+        .lifestyle-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            min-height: 180px;
+        }
+
+        .lifestyle-col:not(:last-child) {
+            position: relative;
+        }
+
+        .lifestyle-col:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -24px;
+            top: 5%;
+            height: 90%;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        @media (max-width: 768px) {
+            .lifestyle-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            .lifestyle-col:not(:last-child)::after {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -944,73 +981,141 @@
                     </div>
                 </div>
 
-                <!-- 2. UV Index -->
+                <!-- 2. Clouds & Storms Movement Direction -->
                 <div class="detail-card">
                     <div class="detail-header">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>
-                        <span>Chỉ số UV</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <polyline points="19 12 12 19 5 12"></polyline>
+                        </svg>
+                        <span>Hướng đi mây & bão</span>
                     </div>
-                    <div class="detail-value" id="detailUvVal">--</div>
+                    <div class="detail-value" id="detailWindDirVal" style="display: flex; align-items: center; gap: 8px;">
+                        <span>--</span>
+                        <svg id="windDirArrow" viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: none; stroke: var(--accent-blue); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.8s ease;">
+                            <line x1="12" y1="19" x2="12" y2="5"></line>
+                            <polyline points="5 12 12 5 19 12"></polyline>
+                        </svg>
+                    </div>
                     <div>
                         <div class="detail-bar-container">
-                            <div class="detail-bar" id="detailUvBar" style="background: var(--accent-yellow);"></div>
+                            <div class="detail-bar" id="detailWindDirBar" style="background: var(--accent-blue);"></div>
                         </div>
-                        <div class="detail-footer" style="margin-top: 8px;" id="detailUvFooter">Đang tải...</div>
+                        <div class="detail-footer" style="margin-top: 8px;" id="detailWindDirFooter">Đang tải...</div>
                     </div>
                 </div>
 
-                <!-- 3. Dew Point -->
+                <!-- 3. Sunrise -->
                 <div class="detail-card">
                     <div class="detail-header">
-                        <svg viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-13-7-13S5 10.7 5 15a7 7 0 0 0 7 7z"></path></svg>
-                        <span>Điểm sương</span>
-                    </div>
-                    <div class="detail-value" id="detailDewPointVal">--°</div>
-                    <div class="detail-footer" id="detailDewPointFooter">Đang tải...</div>
-                </div>
-
-                <!-- 4. Sunrise/Sunset -->
-                <div class="detail-card">
-                    <div class="detail-header">
-                        <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5L7 19M7 5l10 14"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 18a5 5 0 0 0-10 0"></path>
+                            <path d="M12 2v9M9 5l3-3 3 3M2 22h20"></path>
+                        </svg>
                         <span>Bình minh</span>
                     </div>
-                    <div class="detail-value" style="font-size: 1.4rem;" id="sunriseVal">--:--</div>
-                    <div class="detail-footer" id="sunsetVal">Hoàng hôn: --:--</div>
-                </div>
-
-                <!-- 5. Humidity -->
-                <div class="detail-card">
-                    <div class="detail-header">
-                        <svg viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-13-7-13S5 10.7 5 15a7 7 0 0 0 7 7z"></path></svg>
-                        <span>Độ ẩm</span>
-                    </div>
-                    <div class="detail-value" id="detailHumidityVal">--%</div>
+                    <div class="detail-value" id="detailSunriseVal">--:--</div>
                     <div>
                         <div class="detail-bar-container">
-                            <div class="detail-bar" id="detailHumidityBar"></div>
+                            <div class="detail-bar" id="detailSunriseBar" style="background: var(--accent-yellow);"></div>
                         </div>
-                        <div class="detail-footer" style="margin-top: 8px;" id="detailHumidityFooter">Đang tải...</div>
+                        <div class="detail-footer" style="margin-top: 8px;" id="detailSunriseFooter">Đang tải...</div>
                     </div>
                 </div>
 
-                <!-- 6. Pressure -->
+                <!-- 4. Sunset -->
                 <div class="detail-card">
                     <div class="detail-header">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
-                        <span>Áp suất</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 18a5 5 0 0 0-10 0"></path>
+                            <path d="M12 9V2"></path>
+                            <path d="M9 11l3 3 3-3"></path>
+                            <path d="M2 22h20"></path>
+                        </svg>
+                        <span>Hoàng hôn</span>
                     </div>
-                    <div class="detail-value" id="detailPressureVal">--</div>
+                    <div class="detail-value" id="detailSunsetVal">--:--</div>
                     <div>
                         <div class="detail-bar-container">
-                            <div class="detail-bar" id="detailPressureBar" style="background: var(--accent-purple); width: 100%;"></div>
+                            <div class="detail-bar" id="detailSunsetBar" style="background: var(--accent-orange);"></div>
                         </div>
-                        <div class="detail-footer" style="margin-top: 8px;" id="detailPressureFooter">hPa</div>
+                        <div class="detail-footer" style="margin-top: 8px;" id="detailSunsetFooter">Đang tải...</div>
                     </div>
+                </div>
+
+                <!-- 5. Feels Like -->
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
+                        </svg>
+                        <span>Cảm giác thực tế</span>
+                    </div>
+                    <div class="detail-value" id="detailFeelsLikeVal">--°</div>
+                    <div>
+                        <div class="detail-bar-container">
+                            <div class="detail-bar" id="detailFeelsLikeBar" style="background: var(--accent-red);"></div>
+                        </div>
+                        <div class="detail-footer" style="margin-top: 8px;" id="detailFeelsLikeFooter">Đang tải...</div>
+                    </div>
+                </div>
+
+                <!-- 6. Weather Map -->
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                            <line x1="9" y1="3" x2="9" y2="18"></line>
+                            <line x1="15" y1="6" x2="15" y2="21"></line>
+                        </svg>
+                        <span>Bản đồ thời tiết</span>
+                    </div>
+                    <div class="detail-value" style="font-size: 1.25rem; letter-spacing: 1px;" id="detailMapVal">BẢN ĐỒ</div>
+                    <div>
+                        <div class="detail-bar-container">
+                            <div class="detail-bar" id="detailMapBar" style="background: var(--accent-blue); width: 100%;"></div>
+                        </div>
+                        <div class="detail-footer" style="margin-top: 8px;" id="detailMapFooter">Nhấp để mở bản đồ</div>
+                    </div>
+                </div>
+        </div>
+
+        <!-- LIFESTYLE RECOMMENDATIONS (BẢN THÂN) -->
+        <div class="card" style="margin-top: 32px; padding: 36px 32px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 28px; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-blue);"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <span>Hoạt động</span>
+            </div>
+            
+            <div class="lifestyle-grid">
+                <!-- 1. Tập thể dục / Chạy bộ -->
+                <div class="lifestyle-col">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--text-secondary);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-green);"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                            <span>Tập thể dục</span>
+                        </div>
+                        <span id="runningScoreBadge" class="pill" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green); font-weight: 600; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;">Đang tải...</span>
+                    </div>
+                    <div id="runningTimeSuggestion" style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">--:-- - --:--</div>
+                    <p id="runningDescription" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin: 0;">Đang phân tích điều kiện thời tiết...</p>
+                </div>
+
+                <!-- 2. Du lịch / Dã ngoại -->
+                <div class="lifestyle-col">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--text-secondary);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-yellow);"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            <span>Dã ngoại</span>
+                        </div>
+                        <span id="travelScoreBadge" class="pill" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); font-weight: 600; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;">Đang tải...</span>
+                    </div>
+                    <div id="travelTimeSuggestion" style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Cuối tuần này</div>
+                    <p id="travelDescription" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin: 0;">Đang đánh giá thời tiết cuối tuần...</p>
                 </div>
             </div>
         </div>
-        
+
         <!-- Footer credits -->
         <footer>
             <div style="margin-top: 24px; font-size: 0.8rem; color: var(--text-muted);">
@@ -1297,6 +1402,11 @@
             ];
             const index = Math.round(((deg % 360) / 22.5)) % 16;
             return directions[index];
+        }
+
+        function getMovementDirectionVN(deg) {
+            const movementDeg = (deg + 180) % 360;
+            return getWindDirectionVN(movementDeg);
         }
 
         // Estimate UV Index based on location, timezone, weather and cloudiness
@@ -1615,29 +1725,286 @@
                 document.getElementById('aqiBar').style.width = '0%';
             }
 
-            document.getElementById('detailUvVal').textContent = uvIndex.toFixed(1);
-            document.getElementById('detailUvFooter').textContent = `Mức độ: ${uvDesc}`;
-            document.getElementById('detailUvBar').style.width = `${(uvIndex / 11) * 100}%`;
-
-            document.getElementById('detailDewPointVal').textContent = `${formatTemp(dewPointC)}`;
-            document.getElementById('detailDewPointFooter').textContent = getDewPointComfort(dewPointC);
-
             const formatTime = (timestamp) => {
                 const date = new Date((timestamp + timezoneOffset) * 1000);
                 const h = String(date.getUTCHours()).padStart(2, '0');
                 const m = String(date.getUTCMinutes()).padStart(2, '0');
                 return `${h}:${m}`;
             };
-            document.getElementById('sunriseVal').textContent = formatTime(current.sys.sunrise);
-            document.getElementById('sunsetVal').textContent = `Hoàng hôn: ${formatTime(current.sys.sunset)}`;
 
-            document.getElementById('detailHumidityVal').textContent = `${humidity}%`;
-            document.getElementById('detailHumidityFooter').textContent = `Hiện tại ẩm ${getHumidityDescription(humidity).toLowerCase()}`;
-            document.getElementById('detailHumidityBar').style.width = `${humidity}%`;
+            // 2. Sunset
+            const sunsetTimeStr = formatTime(current.sys.sunset);
+            document.getElementById('detailSunsetVal').textContent = sunsetTimeStr;
+            const nowTime = Math.floor(Date.now() / 1000);
+            let sunsetPct = 0;
+            if (nowTime > current.sys.sunset) {
+                sunsetPct = 100;
+                document.getElementById('detailSunsetFooter').textContent = "Mặt trời đã lặn";
+            } else if (nowTime < current.sys.sunrise) {
+                sunsetPct = 0;
+                document.getElementById('detailSunsetFooter').textContent = "Chưa bình minh";
+            } else {
+                sunsetPct = Math.round(((nowTime - current.sys.sunrise) / (current.sys.sunset - current.sys.sunrise)) * 100);
+                const minsRemaining = Math.round((current.sys.sunset - nowTime) / 60);
+                const hrs = Math.floor(minsRemaining / 60);
+                const mins = minsRemaining % 60;
+                let timeStr = "";
+                if (hrs > 0) timeStr += `${hrs}g `;
+                timeStr += `${mins}ph nữa`;
+                document.getElementById('detailSunsetFooter').textContent = `Lặn lúc ${sunsetTimeStr} (Còn ${timeStr})`;
+            }
+            document.getElementById('detailSunsetBar').style.width = `${sunsetPct}%`;
 
-            document.getElementById('detailPressureVal').textContent = `${pressure} hPa`;
-            const pressurePct = Math.max(0, Math.min(100, ((pressure - 950) / 100) * 100));
-            document.getElementById('detailPressureBar').style.width = `${pressurePct}%`;
+            // 3. Hướng đi mây & bão (replaces Cloudiness)
+            const movementDeg = (current.wind.deg + 180) % 360;
+            document.getElementById('detailWindDirVal').querySelector('span').textContent = getMovementDirectionVN(current.wind.deg);
+            const windArrow = document.getElementById('windDirArrow');
+            if (windArrow) {
+                windArrow.style.transform = `rotate(${movementDeg}deg)`;
+            }
+            const speedKmh = Math.round(current.wind.speed * 3.6);
+            document.getElementById('detailWindDirBar').style.width = `${Math.min(100, (speedKmh / 50) * 100)}%`;
+            document.getElementById('detailWindDirFooter').textContent = `Gió ${speedKmh} km/h từ ${getWindDirectionVN(current.wind.deg)}`;
+
+            // 4. Sunrise
+            const sunriseTimeStr = formatTime(current.sys.sunrise);
+            document.getElementById('detailSunriseVal').textContent = sunriseTimeStr;
+            let sunrisePct = 0;
+            if (nowTime > current.sys.sunrise) {
+                sunrisePct = 100;
+                document.getElementById('detailSunriseFooter').textContent = "Mặt trời đã mọc";
+            } else {
+                const minsToSunrise = Math.round((current.sys.sunrise - nowTime) / 60);
+                if (minsToSunrise > 0) {
+                    const hrs = Math.floor(minsToSunrise / 60);
+                    const mins = minsToSunrise % 60;
+                    let timeStr = "";
+                    if (hrs > 0) timeStr += `${hrs}g `;
+                    timeStr += `${mins}ph nữa`;
+                    document.getElementById('detailSunriseFooter').textContent = `Mọc lúc ${sunriseTimeStr} (Còn ${timeStr})`;
+                } else {
+                    document.getElementById('detailSunriseFooter').textContent = "Bình minh đang diễn ra";
+                }
+                sunrisePct = 0;
+            }
+            document.getElementById('detailSunriseBar').style.width = `${sunrisePct}%`;
+
+            // 5. Feels Like
+            const feelsLikeVal = current.main.feels_like;
+            document.getElementById('detailFeelsLikeVal').textContent = formatTemp(feelsLikeVal);
+            const feelsLikePct = Math.max(0, Math.min(100, ((feelsLikeVal + 10) / 60) * 100));
+            document.getElementById('detailFeelsLikeBar').style.width = `${feelsLikePct}%`;
+            const diff = feelsLikeVal - tempC;
+            let feelsLikeDesc = "Bằng với nhiệt độ thực tế";
+            if (diff > 0.5) feelsLikeDesc = `Ấm hơn thực tế ${diff.toFixed(1)}°C`;
+            else if (diff < -0.5) feelsLikeDesc = `Lạnh hơn thực tế ${Math.abs(diff).toFixed(1)}°C`;
+            document.getElementById('detailFeelsLikeFooter').textContent = feelsLikeDesc;
+
+            // 6. Map
+            document.getElementById('detailMapVal').textContent = "BẢN ĐỒ";
+            document.getElementById('detailMapBar').style.width = "100%";
+            document.getElementById('detailMapFooter').textContent = "Nhấp để mở bản đồ";
+
+            // 7. Personal Lifestyle Recommendations (Bản thân)
+            try {
+                // A. Workout & Running recommendation
+                let bestRunningSlots = [];
+                
+                if (forecast && forecast.list) {
+                    const next24hSlots = forecast.list.slice(0, 8);
+                    
+                    next24hSlots.forEach(slot => {
+                        const slotDate = new Date((slot.dt + timezoneOffset) * 1000);
+                        const slotHour = slotDate.getUTCHours();
+                        
+                        let score = 100;
+                        
+                        // Temperature score (ideal: 16-22°C)
+                        const temp = slot.main.temp;
+                        if (temp < 10) score -= (10 - temp) * 4;
+                        else if (temp > 24) score -= (temp - 24) * 5;
+                        
+                        // Humidity score (ideal: 40-60%)
+                        const hum = slot.main.humidity;
+                        if (hum > 75) score -= (hum - 75) * 1.5;
+                        else if (hum < 35) score -= (35 - hum) * 1;
+                        
+                        // Rain score
+                        const pop = slot.pop || 0;
+                        if (pop > 0.1) score -= pop * 80;
+                        
+                        // Time of day score (prefer morning 5-8 AM, or evening 5-8 PM)
+                        const isIdealTime = (slotHour >= 5 && slotHour <= 9) || (slotHour >= 16 && slotHour <= 20);
+                        if (!isIdealTime) score -= 15;
+                        
+                        bestRunningSlots.push({
+                            hour: slotHour,
+                            score: score,
+                            temp: temp,
+                            humidity: hum,
+                            pop: pop
+                        });
+                    });
+                    
+                    bestRunningSlots.sort((a, b) => b.score - a.score);
+                    
+                    let currentAqi = 1;
+                    if (airQuality && airQuality.list && airQuality.list[0]) {
+                        currentAqi = airQuality.list[0].main.aqi;
+                    }
+                    
+                    const runningScoreBadge = document.getElementById('runningScoreBadge');
+                    const runningTimeSuggestion = document.getElementById('runningTimeSuggestion');
+                    const runningDescription = document.getElementById('runningDescription');
+                    
+                    if (currentAqi >= 4) {
+                        runningScoreBadge.textContent = "Không khuyến nghị";
+                        runningScoreBadge.style.background = "rgba(239, 68, 68, 0.15)";
+                        runningScoreBadge.style.color = "var(--accent-red)";
+                        runningTimeSuggestion.textContent = "Tập trong nhà";
+                        runningDescription.textContent = `Chất lượng không khí hôm nay rất kém (AQI mức ${currentAqi}). Tránh các hoạt động thể chất mạnh ngoài trời để bảo vệ đường hô hấp. Hãy chọn tập luyện trong nhà.`;
+                    } else if (bestRunningSlots.length > 0 && bestRunningSlots[0].score > 40) {
+                        const best = bestRunningSlots[0];
+                        
+                        let rating = "Rất tốt";
+                        let bg = "rgba(16, 185, 129, 0.15)";
+                        let color = "var(--accent-green)";
+                        
+                        if (best.score < 60) {
+                            rating = "Khá";
+                            bg = "rgba(245, 158, 11, 0.15)";
+                            color = "var(--accent-yellow)";
+                        } else if (best.score < 75) {
+                            rating = "Tốt";
+                            bg = "rgba(59, 130, 246, 0.15)";
+                            color = "var(--accent-blue)";
+                        }
+                        
+                        runningScoreBadge.textContent = rating;
+                        runningScoreBadge.style.background = bg;
+                        runningScoreBadge.style.color = color;
+                        
+                        const startH = String(best.hour).padStart(2, '0');
+                        const endH = String((best.hour + 2) % 24).padStart(2, '0');
+                        runningTimeSuggestion.textContent = `${startH}:00 - ${endH}:00`;
+                        
+                        let reason = `Khung giờ này có thời tiết mát mẻ (${Math.round(best.temp)}°C), độ ẩm phù hợp (${best.humidity}%)`;
+                        if (best.pop > 0) {
+                            reason += ` và ít khả năng mưa (${Math.round(best.pop * 100)}%).`;
+                        } else {
+                            reason += " và không có mưa.";
+                        }
+                        runningDescription.textContent = `Thời điểm chạy tốt nhất trong 24 giờ tới là khoảng ${startH}:00. ${reason}`;
+                    } else {
+                        runningScoreBadge.textContent = "Không tốt";
+                        runningScoreBadge.style.background = "rgba(239, 68, 68, 0.15)";
+                        runningScoreBadge.style.color = "var(--accent-red)";
+                        runningTimeSuggestion.textContent = "Tránh chạy bộ";
+                        runningDescription.textContent = "Điều kiện thời tiết trong 24 giờ tới có mưa ẩm lớn hoặc nhiệt độ quá khắc nghiệt. Không thuận lợi cho việc chạy bộ ngoài trời.";
+                    }
+                }
+                
+                // B. Travel & Picnic Weekend evaluation
+                const travelScoreBadge = document.getElementById('travelScoreBadge');
+                const travelTimeSuggestion = document.getElementById('travelTimeSuggestion');
+                const travelDescription = document.getElementById('travelDescription');
+                
+                if (forecast && forecast.list) {
+                    let weekendSlots = [];
+                    forecast.list.forEach(slot => {
+                        const slotDate = new Date(slot.dt * 1000);
+                        const dayOfWeek = slotDate.getDay(); // 0: Sunday, 6: Saturday
+                        const slotHour = slotDate.getHours();
+                        
+                        if ((dayOfWeek === 6 || dayOfWeek === 0) && (slotHour >= 8 && slotHour <= 17)) {
+                            weekendSlots.push({
+                                day: dayOfWeek === 6 ? 'Thứ Bảy' : 'Chủ Nhật',
+                                temp: slot.main.temp,
+                                pop: slot.pop || 0,
+                                clouds: slot.clouds.all,
+                                desc: slot.weather[0].description
+                            });
+                        }
+                    });
+                    
+                    if (weekendSlots.length > 0) {
+                        const satSlots = weekendSlots.filter(s => s.day === 'Thứ Bảy');
+                        const sunSlots = weekendSlots.filter(s => s.day === 'Chủ Nhật');
+                        
+                        let satPop = satSlots.length > 0 ? satSlots.reduce((acc, s) => acc + s.pop, 0) / satSlots.length : 0;
+                        let sunPop = sunSlots.length > 0 ? sunSlots.reduce((acc, s) => acc + s.pop, 0) / sunSlots.length : 0;
+                        
+                        let satTemp = satSlots.length > 0 ? satSlots.reduce((acc, s) => acc + s.temp, 0) / satSlots.length : 25;
+                        let sunTemp = sunSlots.length > 0 ? sunSlots.reduce((acc, s) => acc + s.temp, 0) / sunSlots.length : 25;
+                        
+                        let overallScore = 100;
+                        overallScore -= Math.max(satPop, sunPop) * 60;
+                        
+                        const avgTemp = (satTemp + sunTemp) / 2;
+                        if (avgTemp > 32) overallScore -= (avgTemp - 32) * 5;
+                        else if (avgTemp < 16) overallScore -= (16 - avgTemp) * 3;
+                        
+                        let rating = "Phù hợp";
+                        let bg = "rgba(16, 185, 129, 0.15)";
+                        let color = "var(--accent-green)";
+                        
+                        if (overallScore < 50) {
+                            rating = "Hạn chế";
+                            bg = "rgba(239, 68, 68, 0.15)";
+                            color = "var(--accent-red)";
+                        } else if (overallScore < 75) {
+                            rating = "Tạm ổn";
+                            bg = "rgba(245, 158, 11, 0.15)";
+                            color = "var(--accent-yellow)";
+                        }
+                        
+                        travelScoreBadge.textContent = rating;
+                        travelScoreBadge.style.background = bg;
+                        travelScoreBadge.style.color = color;
+                        travelTimeSuggestion.textContent = "Cuối tuần này";
+                        
+                        let desc = "";
+                        if (satSlots.length > 0) {
+                            desc += `Thứ Bảy: ${Math.round(satTemp)}°C, ${satPop > 0.2 ? 'khả năng mưa ' + Math.round(satPop*100) + '%' : 'khô ráo'}. `;
+                        }
+                        if (sunSlots.length > 0) {
+                            desc += `Chủ Nhật: ${Math.round(sunTemp)}°C, ${sunPop > 0.2 ? 'khả năng mưa ' + Math.round(sunPop*100) + '%' : 'khô ráo'}. `;
+                        }
+                        
+                        if (overallScore >= 75) {
+                            desc += "Thời tiết rất lý tưởng cho các hoạt động cắm trại, dã ngoại ngoài trời cùng gia đình.";
+                        } else if (overallScore >= 50) {
+                            desc += "Thời tiết tương đối ổn định, có thể dã ngoại ngoài trời nhưng nên mang theo ô/dù.";
+                        } else {
+                            desc += "Nên ưu tiên các hoạt động vui chơi trong nhà vào cuối tuần này do thời tiết bất lợi.";
+                        }
+                        travelDescription.textContent = desc;
+                    } else {
+                        let upcomingSlots = forecast.list.slice(0, 12);
+                        let avgPop = upcomingSlots.reduce((acc, s) => acc + (s.pop || 0), 0) / upcomingSlots.length;
+                        let avgTemp = upcomingSlots.reduce((acc, s) => acc + s.main.temp, 0) / upcomingSlots.length;
+                        
+                        let rating = "Phù hợp";
+                        let bg = "rgba(16, 185, 129, 0.15)";
+                        let color = "var(--accent-green)";
+                        
+                        if (avgPop > 0.3) {
+                            rating = "Hạn chế";
+                            bg = "rgba(245, 158, 11, 0.15)";
+                            color = "var(--accent-yellow)";
+                        }
+                        
+                        travelScoreBadge.textContent = rating;
+                        travelScoreBadge.style.background = bg;
+                        travelScoreBadge.style.color = color;
+                        
+                        travelTimeSuggestion.textContent = "3 ngày tới";
+                        travelDescription.textContent = `Dự báo 3 ngày tới nhiệt độ khoảng ${Math.round(avgTemp)}°C, khả năng mưa ${Math.round(avgPop * 100)}%. ${avgPop > 0.3 ? 'Nên ưu tiên các hoạt động trong nhà hoặc chuẩn bị sẵn đồ che mưa.' : 'Thời tiết rất thích hợp cho du lịch và dã ngoại ngoài trời.'}`;
+                    }
+                }
+            } catch (lifestyleErr) {
+                console.error("Lỗi tính toán gợi ý cá nhân:", lifestyleErr);
+            }
         }
 
         // --- RENDER HOURLY TIMELINE ---
@@ -1887,18 +2254,28 @@
             });
 
             const detailCards = document.querySelectorAll('.details-grid .detail-card');
-            const detailFeatures = ['aqi', 'uv', 'dewpoint', 'sunrise_sunset', 'humidity', 'pressure'];
+            const detailFeatures = ['aqi', 'clouds', 'sunrise', 'sunset', 'feels_like', 'map'];
             detailCards.forEach((card, index) => {
                 card.addEventListener('click', () => {
                     const cityVal = getActiveCity();
+                    const feat = detailFeatures[index];
+                    let url = '';
+                    
                     if (isStaticServer) {
-                        let feat = detailFeatures[index];
-                        if (feat === 'sunrise_sunset') feat = 'Sunrise_sunset';
-                        else feat = feat.charAt(0).toUpperCase() + feat.slice(1);
-                        window.location.href = `Weather_${feat}.html?city=${encodeURIComponent(cityVal)}`;
+                        if (feat === 'aqi') url = `Weather_Aqi.html?city=${encodeURIComponent(cityVal)}`;
+                        else if (feat === 'sunrise' || feat === 'sunset') url = `Weather_Sunrise_sunset.html?city=${encodeURIComponent(cityVal)}`;
+                        else if (feat === 'clouds') url = `Weather_Map.html?city=${encodeURIComponent(cityVal)}&layer=clouds`;
+                        else if (feat === 'feels_like') url = `Weather_Map.html?city=${encodeURIComponent(cityVal)}&layer=temperature`;
+                        else if (feat === 'map') url = `Weather_Map.html?city=${encodeURIComponent(cityVal)}`;
                     } else {
-                        window.location.href = `/weather/${detailFeatures[index]}?city=${encodeURIComponent(cityVal)}`;
+                        if (feat === 'aqi') url = `/weather/aqi?city=${encodeURIComponent(cityVal)}`;
+                        else if (feat === 'sunrise' || feat === 'sunset') url = `/weather/sunrise_sunset?city=${encodeURIComponent(cityVal)}`;
+                        else if (feat === 'clouds') url = `/weather/map?city=${encodeURIComponent(cityVal)}&layer=clouds`;
+                        else if (feat === 'feels_like') url = `/weather/map?city=${encodeURIComponent(cityVal)}&layer=temperature`;
+                        else if (feat === 'map') url = `/weather/map?city=${encodeURIComponent(cityVal)}`;
                     }
+                    
+                    if (url) window.location.href = url;
                 });
             });
 
