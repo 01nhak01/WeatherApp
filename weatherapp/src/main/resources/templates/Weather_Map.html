@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atmos Weather - Bản đồ thời tiết</title>
+    <link rel="icon" type="image/png" href="/favicon.png?v=2">
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -691,12 +692,20 @@
     <script th:inline="javascript">
         // Helper function to return custom weather icon SVG
         function getWeatherIconSVG(iconCode, sizeClass = 'condition-icon') {
+            if (iconCode.startsWith('01')) {
+                return `<img class="${sizeClass}" src="/sun.png" alt="Nắng" style="object-fit: contain;">`;
+            }
+            if (iconCode.startsWith('02')) {
+                return `<img class="${sizeClass}" src="/cloud_sun.png" alt="Ít mây" style="object-fit: contain;">`;
+            }
+            if (iconCode.startsWith('03') || iconCode.startsWith('04')) {
+                return `<img class="${sizeClass}" src="/cloud.png" alt="Mây" style="object-fit: contain;">`;
+            }
+            if (iconCode.startsWith('09') || iconCode.startsWith('10')) {
+                return `<img class="${sizeClass}" src="/rain.png" alt="Mưa" style="object-fit: contain;">`;
+            }
             let svgId = 'svg-clear';
-            if (iconCode.startsWith('01')) svgId = 'svg-clear';
-            else if (iconCode.startsWith('02')) svgId = 'svg-partly-cloudy';
-            else if (iconCode.startsWith('03') || iconCode.startsWith('04')) svgId = 'svg-cloudy';
-            else if (iconCode.startsWith('09') || iconCode.startsWith('10')) svgId = 'svg-rain';
-            else if (iconCode.startsWith('11')) svgId = 'svg-storm';
+            if (iconCode.startsWith('11')) svgId = 'svg-storm';
             else if (iconCode.startsWith('13')) svgId = 'svg-snow';
             else if (iconCode.startsWith('50')) svgId = 'svg-mist';
 

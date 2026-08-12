@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atmos Weather - Dự báo thời tiết</title>
+    <link rel="icon" type="image/png" href="/favicon.png?v=2">
     <!-- Import Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,6 +26,7 @@
             --accent-blue: #3b82f6;
             --accent-cyan: #06b6d4;
             --accent-yellow: #f59e0b;
+            --accent-orange: #f97316;
             --accent-green: #10b981;
             --accent-purple: #a855f7;
             --accent-red: #ef4444;
@@ -110,17 +112,16 @@
             gap: 10px;
         }
 
-        .logo-icon {
-            width: 24px;
-            height: 24px;
-            fill: none;
-            stroke: var(--accent-blue);
-            stroke-width: 2;
-            animation: spin 10s linear infinite;
+        .logo-image {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            object-fit: contain;
+            transition: transform 0.3s ease;
         }
 
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
+        .logo-section:hover .logo-image {
+            transform: scale(1.1) rotate(5deg);
         }
 
         .logo-text {
@@ -352,6 +353,7 @@
         .condition-text {
             font-size: 1.6rem;
             font-weight: 500;
+            text-transform: uppercase;
         }
 
         .pill-container {
@@ -762,41 +764,108 @@
             background: rgba(59, 130, 246, 0.25);
         }
 
-        .lifestyle-grid {
+        .activities-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 48px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
         }
 
-        .lifestyle-col {
+        @media (max-width: 992px) {
+            .activities-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .activities-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        .activity-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            min-height: 180px;
+            justify-content: space-between;
+            min-height: 190px;
         }
 
-        .lifestyle-col:not(:last-child) {
-            position: relative;
+        .activity-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .lifestyle-col:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            right: -24px;
-            top: 5%;
-            height: 90%;
-            width: 1px;
-            background: rgba(255, 255, 255, 0.08);
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
         }
 
-        @media (max-width: 768px) {
-            .lifestyle-grid {
-                grid-template-columns: 1fr;
-                gap: 32px;
-            }
-            .lifestyle-col:not(:last-child)::after {
-                display: none;
-            }
+        .activity-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .activity-score-badge {
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+
+        .activity-time-suggestion {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .activity-description {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .activity-filter-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-main);
+            outline: none;
+        }
+
+        .activity-filter-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .activity-filter-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
         }
     </style>
 </head>
@@ -810,11 +879,8 @@
         <!-- HEADER -->
         <header>
             <div class="logo-section">
-                <!-- Atmos Pulsing Sun Icon -->
-                <svg class="logo-icon" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <path d="M12 1v2M12 21v2M1 12h2M21 12h2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
-                </svg>
+                <!-- Atmos Logo Image -->
+                <img class="logo-image" src="/favicon.png" alt="Atmos Logo">
                 <span class="logo-text">Atmos</span>
             </div>
 
@@ -1078,40 +1144,26 @@
                         <div class="detail-footer" style="margin-top: 8px;" id="detailMapFooter">Nhấp để mở bản đồ</div>
                     </div>
                 </div>
+            </div>
         </div>
 
         <!-- LIFESTYLE RECOMMENDATIONS (BẢN THÂN) -->
         <div class="card" style="margin-top: 32px; padding: 36px 32px;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 28px; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary);">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-blue);"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                <span>Hoạt động</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-blue);"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    <span>Gợi ý Hoạt động thời tiết</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="activityFilter-outdoor" class="activity-filter-btn active" onclick="setActivityFilter('outdoor')">Ngoài trời</button>
+                    <button id="activityFilter-indoor" class="activity-filter-btn" onclick="setActivityFilter('indoor')">Trong nhà</button>
+                </div>
             </div>
             
-            <div class="lifestyle-grid">
-                <!-- 1. Tập thể dục / Chạy bộ -->
-                <div class="lifestyle-col">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--text-secondary);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-green);"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
-                            <span>Tập thể dục</span>
-                        </div>
-                        <span id="runningScoreBadge" class="pill" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green); font-weight: 600; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;">Đang tải...</span>
-                    </div>
-                    <div id="runningTimeSuggestion" style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">--:-- - --:--</div>
-                    <p id="runningDescription" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin: 0;">Đang phân tích điều kiện thời tiết...</p>
-                </div>
-
-                <!-- 2. Du lịch / Dã ngoại -->
-                <div class="lifestyle-col">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--text-secondary);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-yellow);"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                            <span>Dã ngoại</span>
-                        </div>
-                        <span id="travelScoreBadge" class="pill" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); font-weight: 600; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;">Đang tải...</span>
-                    </div>
-                    <div id="travelTimeSuggestion" style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Cuối tuần này</div>
-                    <p id="travelDescription" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin: 0;">Đang đánh giá thời tiết cuối tuần...</p>
+            <div id="activitiesGrid" class="activities-grid">
+                <!-- Hoạt động được render bằng Javascript -->
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+                    Đang phân tích điều kiện thời tiết để gợi ý các hoạt động phù hợp...
                 </div>
             </div>
         </div>
@@ -1131,6 +1183,7 @@
         // --- GLOBAL STATE ---
         let currentUnit = 'C'; // 'C' or 'F'
         let currentWeatherData = null;
+        let activeActivityFilter = 'outdoor';
         let chartInstance = null;
         const isStaticServer = window.location.protocol === 'file:' || window.location.port === '63342';
 
@@ -1482,12 +1535,20 @@
 
         // Map OpenWeatherMap Weather Icon to custom SVG
         function getWeatherIconSVG(iconCode, sizeClass = 'condition-icon') {
+            if (iconCode.startsWith('01')) {
+                return `<img class="${sizeClass}" src="/sun.png" alt="Nắng" style="object-fit: contain;">`;
+            }
+            if (iconCode.startsWith('02')) {
+                return `<img class="${sizeClass}" src="/cloud_sun.png" alt="Ít mây" style="object-fit: contain;">`;
+            }
+            if (iconCode.startsWith('03') || iconCode.startsWith('04')) {
+                return `<img class="${sizeClass}" src="/cloud.png" alt="Mây" style="object-fit: contain;">`;
+            }
+            if (iconCode.startsWith('09') || iconCode.startsWith('10')) {
+                return `<img class="${sizeClass}" src="/rain.png" alt="Mưa" style="object-fit: contain;">`;
+            }
             let svgId = 'svg-clear';
-            if (iconCode.startsWith('01')) svgId = 'svg-clear';
-            else if (iconCode.startsWith('02')) svgId = 'svg-partly-cloudy';
-            else if (iconCode.startsWith('03') || iconCode.startsWith('04')) svgId = 'svg-cloudy';
-            else if (iconCode.startsWith('09') || iconCode.startsWith('10')) svgId = 'svg-rain';
-            else if (iconCode.startsWith('11')) svgId = 'svg-storm';
+            if (iconCode.startsWith('11')) svgId = 'svg-storm';
             else if (iconCode.startsWith('13')) svgId = 'svg-snow';
             else if (iconCode.startsWith('50')) svgId = 'svg-mist';
 
@@ -1807,204 +1868,406 @@
 
             // 7. Personal Lifestyle Recommendations (Bản thân)
             try {
-                // A. Workout & Running recommendation
-                let bestRunningSlots = [];
-                
-                if (forecast && forecast.list) {
-                    const next24hSlots = forecast.list.slice(0, 8);
-                    
-                    next24hSlots.forEach(slot => {
-                        const slotDate = new Date((slot.dt + timezoneOffset) * 1000);
-                        const slotHour = slotDate.getUTCHours();
-                        
-                        let score = 100;
-                        
-                        // Temperature score (ideal: 16-22°C)
-                        const temp = slot.main.temp;
-                        if (temp < 10) score -= (10 - temp) * 4;
-                        else if (temp > 24) score -= (temp - 24) * 5;
-                        
-                        // Humidity score (ideal: 40-60%)
-                        const hum = slot.main.humidity;
-                        if (hum > 75) score -= (hum - 75) * 1.5;
-                        else if (hum < 35) score -= (35 - hum) * 1;
-                        
-                        // Rain score
-                        const pop = slot.pop || 0;
-                        if (pop > 0.1) score -= pop * 80;
-                        
-                        // Time of day score (prefer morning 5-8 AM, or evening 5-8 PM)
-                        const isIdealTime = (slotHour >= 5 && slotHour <= 9) || (slotHour >= 16 && slotHour <= 20);
-                        if (!isIdealTime) score -= 15;
-                        
-                        bestRunningSlots.push({
-                            hour: slotHour,
-                            score: score,
-                            temp: temp,
-                            humidity: hum,
-                            pop: pop
-                        });
-                    });
-                    
-                    bestRunningSlots.sort((a, b) => b.score - a.score);
-                    
-                    let currentAqi = 1;
-                    if (airQuality && airQuality.list && airQuality.list[0]) {
-                        currentAqi = airQuality.list[0].main.aqi;
-                    }
-                    
-                    const runningScoreBadge = document.getElementById('runningScoreBadge');
-                    const runningTimeSuggestion = document.getElementById('runningTimeSuggestion');
-                    const runningDescription = document.getElementById('runningDescription');
-                    
-                    if (currentAqi >= 4) {
-                        runningScoreBadge.textContent = "Không khuyến nghị";
-                        runningScoreBadge.style.background = "rgba(239, 68, 68, 0.15)";
-                        runningScoreBadge.style.color = "var(--accent-red)";
-                        runningTimeSuggestion.textContent = "Tập trong nhà";
-                        runningDescription.textContent = `Chất lượng không khí hôm nay rất kém (AQI mức ${currentAqi}). Tránh các hoạt động thể chất mạnh ngoài trời để bảo vệ đường hô hấp. Hãy chọn tập luyện trong nhà.`;
-                    } else if (bestRunningSlots.length > 0 && bestRunningSlots[0].score > 40) {
-                        const best = bestRunningSlots[0];
-                        
-                        let rating = "Rất tốt";
-                        let bg = "rgba(16, 185, 129, 0.15)";
-                        let color = "var(--accent-green)";
-                        
-                        if (best.score < 60) {
-                            rating = "Khá";
-                            bg = "rgba(245, 158, 11, 0.15)";
-                            color = "var(--accent-yellow)";
-                        } else if (best.score < 75) {
-                            rating = "Tốt";
-                            bg = "rgba(59, 130, 246, 0.15)";
-                            color = "var(--accent-blue)";
-                        }
-                        
-                        runningScoreBadge.textContent = rating;
-                        runningScoreBadge.style.background = bg;
-                        runningScoreBadge.style.color = color;
-                        
-                        const startH = String(best.hour).padStart(2, '0');
-                        const endH = String((best.hour + 2) % 24).padStart(2, '0');
-                        runningTimeSuggestion.textContent = `${startH}:00 - ${endH}:00`;
-                        
-                        let reason = `Khung giờ này có thời tiết mát mẻ (${Math.round(best.temp)}°C), độ ẩm phù hợp (${best.humidity}%)`;
-                        if (best.pop > 0) {
-                            reason += ` và ít khả năng mưa (${Math.round(best.pop * 100)}%).`;
-                        } else {
-                            reason += " và không có mưa.";
-                        }
-                        runningDescription.textContent = `Thời điểm chạy tốt nhất trong 24 giờ tới là khoảng ${startH}:00. ${reason}`;
-                    } else {
-                        runningScoreBadge.textContent = "Không tốt";
-                        runningScoreBadge.style.background = "rgba(239, 68, 68, 0.15)";
-                        runningScoreBadge.style.color = "var(--accent-red)";
-                        runningTimeSuggestion.textContent = "Tránh chạy bộ";
-                        runningDescription.textContent = "Điều kiện thời tiết trong 24 giờ tới có mưa ẩm lớn hoặc nhiệt độ quá khắc nghiệt. Không thuận lợi cho việc chạy bộ ngoài trời.";
-                    }
-                }
-                
-                // B. Travel & Picnic Weekend evaluation
-                const travelScoreBadge = document.getElementById('travelScoreBadge');
-                const travelTimeSuggestion = document.getElementById('travelTimeSuggestion');
-                const travelDescription = document.getElementById('travelDescription');
-                
-                if (forecast && forecast.list) {
-                    let weekendSlots = [];
-                    forecast.list.forEach(slot => {
-                        const slotDate = new Date(slot.dt * 1000);
-                        const dayOfWeek = slotDate.getDay(); // 0: Sunday, 6: Saturday
-                        const slotHour = slotDate.getHours();
-                        
-                        if ((dayOfWeek === 6 || dayOfWeek === 0) && (slotHour >= 8 && slotHour <= 17)) {
-                            weekendSlots.push({
-                                day: dayOfWeek === 6 ? 'Thứ Bảy' : 'Chủ Nhật',
-                                temp: slot.main.temp,
-                                pop: slot.pop || 0,
-                                clouds: slot.clouds.all,
-                                desc: slot.weather[0].description
-                            });
-                        }
-                    });
-                    
-                    if (weekendSlots.length > 0) {
-                        const satSlots = weekendSlots.filter(s => s.day === 'Thứ Bảy');
-                        const sunSlots = weekendSlots.filter(s => s.day === 'Chủ Nhật');
-                        
-                        let satPop = satSlots.length > 0 ? satSlots.reduce((acc, s) => acc + s.pop, 0) / satSlots.length : 0;
-                        let sunPop = sunSlots.length > 0 ? sunSlots.reduce((acc, s) => acc + s.pop, 0) / sunSlots.length : 0;
-                        
-                        let satTemp = satSlots.length > 0 ? satSlots.reduce((acc, s) => acc + s.temp, 0) / satSlots.length : 25;
-                        let sunTemp = sunSlots.length > 0 ? sunSlots.reduce((acc, s) => acc + s.temp, 0) / sunSlots.length : 25;
-                        
-                        let overallScore = 100;
-                        overallScore -= Math.max(satPop, sunPop) * 60;
-                        
-                        const avgTemp = (satTemp + sunTemp) / 2;
-                        if (avgTemp > 32) overallScore -= (avgTemp - 32) * 5;
-                        else if (avgTemp < 16) overallScore -= (16 - avgTemp) * 3;
-                        
-                        let rating = "Phù hợp";
-                        let bg = "rgba(16, 185, 129, 0.15)";
-                        let color = "var(--accent-green)";
-                        
-                        if (overallScore < 50) {
-                            rating = "Hạn chế";
-                            bg = "rgba(239, 68, 68, 0.15)";
-                            color = "var(--accent-red)";
-                        } else if (overallScore < 75) {
-                            rating = "Tạm ổn";
-                            bg = "rgba(245, 158, 11, 0.15)";
-                            color = "var(--accent-yellow)";
-                        }
-                        
-                        travelScoreBadge.textContent = rating;
-                        travelScoreBadge.style.background = bg;
-                        travelScoreBadge.style.color = color;
-                        travelTimeSuggestion.textContent = "Cuối tuần này";
-                        
-                        let desc = "";
-                        if (satSlots.length > 0) {
-                            desc += `Thứ Bảy: ${Math.round(satTemp)}°C, ${satPop > 0.2 ? 'khả năng mưa ' + Math.round(satPop*100) + '%' : 'khô ráo'}. `;
-                        }
-                        if (sunSlots.length > 0) {
-                            desc += `Chủ Nhật: ${Math.round(sunTemp)}°C, ${sunPop > 0.2 ? 'khả năng mưa ' + Math.round(sunPop*100) + '%' : 'khô ráo'}. `;
-                        }
-                        
-                        if (overallScore >= 75) {
-                            desc += "Thời tiết rất lý tưởng cho các hoạt động cắm trại, dã ngoại ngoài trời cùng gia đình.";
-                        } else if (overallScore >= 50) {
-                            desc += "Thời tiết tương đối ổn định, có thể dã ngoại ngoài trời nhưng nên mang theo ô/dù.";
-                        } else {
-                            desc += "Nên ưu tiên các hoạt động vui chơi trong nhà vào cuối tuần này do thời tiết bất lợi.";
-                        }
-                        travelDescription.textContent = desc;
-                    } else {
-                        let upcomingSlots = forecast.list.slice(0, 12);
-                        let avgPop = upcomingSlots.reduce((acc, s) => acc + (s.pop || 0), 0) / upcomingSlots.length;
-                        let avgTemp = upcomingSlots.reduce((acc, s) => acc + s.main.temp, 0) / upcomingSlots.length;
-                        
-                        let rating = "Phù hợp";
-                        let bg = "rgba(16, 185, 129, 0.15)";
-                        let color = "var(--accent-green)";
-                        
-                        if (avgPop > 0.3) {
-                            rating = "Hạn chế";
-                            bg = "rgba(245, 158, 11, 0.15)";
-                            color = "var(--accent-yellow)";
-                        }
-                        
-                        travelScoreBadge.textContent = rating;
-                        travelScoreBadge.style.background = bg;
-                        travelScoreBadge.style.color = color;
-                        
-                        travelTimeSuggestion.textContent = "3 ngày tới";
-                        travelDescription.textContent = `Dự báo 3 ngày tới nhiệt độ khoảng ${Math.round(avgTemp)}°C, khả năng mưa ${Math.round(avgPop * 100)}%. ${avgPop > 0.3 ? 'Nên ưu tiên các hoạt động trong nhà hoặc chuẩn bị sẵn đồ che mưa.' : 'Thời tiết rất thích hợp cho du lịch và dã ngoại ngoài trời.'}`;
-                    }
-                }
+                renderActivities(data);
             } catch (lifestyleErr) {
                 console.error("Lỗi tính toán gợi ý cá nhân:", lifestyleErr);
             }
+        }
+
+        // --- DYNAMIC WEATHER ACTIVITIES SUGGESTION SYSTEM ---
+        function setActivityFilter(filterType) {
+            activeActivityFilter = filterType;
+            document.querySelectorAll('.activity-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(`activityFilter-${filterType}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            if (currentWeatherData) {
+                renderActivities(currentWeatherData);
+            }
+        }
+
+        function renderActivities(data) {
+            const current = data.current;
+            const forecast = data.forecast;
+            const airQuality = data.airQuality;
+            
+            if (!current) return;
+            
+            const temp = current.main.temp;
+            const humidity = current.main.humidity;
+            const windSpeed = current.wind.speed * 3.6; // m/s to km/h
+            const weatherId = current.weather[0].id;
+            const clouds = current.clouds.all;
+            const timezoneOffset = current.timezone;
+            const lat = current.coord.lat;
+            
+            let aqi = 1;
+            if (airQuality && airQuality.list && airQuality.list[0]) {
+                aqi = airQuality.list[0].main.aqi;
+            }
+            
+            const uvIndex = estimateUVIndex(lat, clouds, timezoneOffset, weatherId);
+            
+            // Check precipitation pop
+            let pop = 0;
+            if (forecast && forecast.list && forecast.list.length > 0) {
+                // Average precipitation probability of next 12 hours
+                const nextSlots = forecast.list.slice(0, 4);
+                pop = nextSlots.reduce((acc, slot) => acc + (slot.pop || 0), 0) / nextSlots.length;
+            }
+            
+            const isRainy = weatherId < 700 || pop > 0.3;
+            const isVeryHot = temp > 32;
+            const isVeryCold = temp < 15;
+            const isAirPolluted = aqi >= 4;
+
+            // Define activities
+            const activities = [
+                {
+                    id: "running",
+                    name: "Chạy bộ ngoài trời",
+                    type: "outdoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-green);"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>`,
+                    evaluate: () => {
+                        let score = 100;
+                        if (isAirPolluted) return { score: 10, rating: "Hạn chế", time: "Tránh ngoài trời", desc: `Không khí ô nhiễm rất kém (AQI ${aqi}). Tránh các hoạt động thể chất mạnh ngoài trời để bảo vệ hô hấp.` };
+                        if (isRainy) return { score: 15, rating: "Không tốt", time: "Tập trong nhà", desc: "Thời tiết ẩm ướt, mưa gió cản trở. Bạn nên chuyển sang chạy trên máy tập hoặc tập gym trong nhà." };
+                        
+                        if (temp > 28) score -= (temp - 28) * 6;
+                        if (temp < 12) score -= (12 - temp) * 4;
+                        if (humidity > 75) score -= (humidity - 75) * 1.5;
+                        if (uvIndex > 6) score -= (uvIndex - 6) * 8;
+                        
+                        let time = "5:00 - 8:00 hoặc 17:00 - 20:00";
+                        if (temp > 30) time = "Sáng sớm / Chiều tối muộn";
+                        else if (temp < 15) time = "Trưa hoặc Chiều ấm";
+                        
+                        let rating = "Rất tốt";
+                        if (score < 40) rating = "Không tốt";
+                        else if (score < 60) rating = "Tạm ổn";
+                        else if (score < 80) rating = "Tốt";
+                        
+                        return {
+                            score: Math.max(0, Math.round(score)),
+                            rating,
+                            time,
+                            desc: `Nhiệt độ khoảng ${Math.round(temp)}°C, độ ẩm ${humidity}%, trời khô ráo và thoáng mát. Rất lý tưởng cho một buổi chạy bộ phục hồi thể lực.`
+                        };
+                    }
+                },
+                {
+                    id: "picnic",
+                    name: "Cắm trại & Dã ngoại",
+                    type: "outdoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-yellow);"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`,
+                    evaluate: () => {
+                        if (isRainy) return { score: 5, rating: "Hạn chế", time: "Chọn ngày khác", desc: "Khả năng cao có mưa ẩm hoặc giông bão. Hoàn toàn không thích hợp để dựng lều hoặc cắm trại ngoài trời." };
+                        if (isAirPolluted) return { score: 20, rating: "Hạn chế", time: "Chọn ngày khác", desc: "Không khí bụi mịn cao. Cắm trại ngoài trời cả ngày sẽ gây ảnh hưởng tiêu cực đến sức khỏe." };
+                        
+                        let score = 100;
+                        if (temp > 32) score -= (temp - 32) * 7;
+                        if (temp < 16) score -= (16 - temp) * 5;
+                        if (windSpeed > 25) score -= (windSpeed - 25) * 2;
+                        
+                        let rating = "Tuyệt vời";
+                        if (score < 40) rating = "Hạn chế";
+                        else if (score < 65) rating = "Tạm ổn";
+                        else if (score < 80) rating = "Phù hợp";
+                        
+                        let desc = `Thời tiết khô ráo, gió mát nhẹ thích hợp để dã ngoại ngoài trời cùng gia đình.`;
+                        if (temp > 30) desc = `Trời khá nóng (${Math.round(temp)}°C), nếu cắm trại nên chọn các khu vực ven hồ có bóng cây râm mát.`;
+                        
+                        return {
+                            score: Math.max(0, Math.round(score)),
+                            rating,
+                            time: "Cả ngày",
+                            desc
+                        };
+                    }
+                },
+                {
+                    id: "swimming",
+                    name: "Bơi lội ngoài trời",
+                    type: "outdoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-cyan);"><path d="M2 12h20M2 16h20M2 8h20"></path></svg>`,
+                    evaluate: () => {
+                        if (isRainy) return { score: 10, rating: "Hạn chế", time: "Nên tránh", desc: "Không nên bơi ngoài trời khi trời mưa dông để tránh nguy cơ sét đánh hoặc cảm lạnh." };
+                        if (temp < 23) return { score: 5, rating: "Quá lạnh", time: "Nên tránh", desc: `Nhiệt độ ngoài trời quá thấp (${Math.round(temp)}°C), nước bể bơi sẽ rất lạnh gây chuột rút.` };
+                        
+                        let score = 50; 
+                        if (temp >= 28) score += 30;
+                        if (temp >= 33) score += 20; 
+                        
+                        if (uvIndex > 8) score -= 15; 
+                        
+                        let time = "15:00 - 18:00";
+                        if (uvIndex > 7) time = "Sáng sớm hoặc Chiều muộn (tránh nắng gắt)";
+                        else if (temp < 26) time = "Gần trưa khi trời ấm nhất";
+                        
+                        let rating = "Phù hợp";
+                        if (score >= 80) rating = "Rất lý tưởng";
+                        else if (score < 40) rating = "Hạn chế";
+                        
+                        return {
+                            score: Math.min(100, Math.max(0, Math.round(score))),
+                            rating,
+                            time,
+                            desc: temp >= 32 ? `Trời nóng bức (${Math.round(temp)}°C) là cơ hội tuyệt vời để ngâm mình trong dòng nước mát giải nhiệt.` : `Thời tiết ấm áp phù hợp cho bơi lội rèn luyện sức khỏe.`
+                        };
+                    }
+                },
+                {
+                    id: "cycling",
+                    name: "Đạp xe ngắm cảnh",
+                    type: "outdoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-purple);"><circle cx="5.5" cy="17.5" r="2.5"></circle><circle cx="18.5" cy="17.5" r="2.5"></circle><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5L14.5 12H18M12 17.5L9 12H4.5M12 7v5.5"></path></svg>`,
+                    evaluate: () => {
+                        if (isRainy) return { score: 10, rating: "Không tốt", time: "Tránh ngoài trời", desc: "Mưa lớn gây trơn trượt đường sá, rất nguy hiểm cho việc đạp xe ngoài trời." };
+                        if (isAirPolluted) return { score: 15, rating: "Hạn chế", time: "Tránh đạp xe", desc: "Không khí ô nhiễm nặng. Hoạt động thể chất mạnh ngoài trời sẽ khiến bạn hít phải lượng lớn bụi mịn." };
+                        
+                        let score = 100;
+                        if (temp > 30) score -= (temp - 30) * 6;
+                        if (temp < 14) score -= (14 - temp) * 5;
+                        if (windSpeed > 22) score -= (windSpeed - 22) * 1.5;
+                        
+                        let rating = "Rất tốt";
+                        if (score < 40) rating = "Hạn chế";
+                        else if (score < 65) rating = "Tạm ổn";
+                        
+                        return {
+                            score: Math.max(0, Math.round(score)),
+                            rating,
+                            time: "6:00 - 8:30 hoặc 16:30 - 18:30",
+                            desc: `Nhiệt độ dễ chịu, gió mát nhẹ, rất phù hợp để đạp xe rèn luyện sức bền ngoài trời.`
+                        };
+                    }
+                },
+                {
+                    id: "photography",
+                    name: "Chụp ảnh ngoại cảnh",
+                    type: "outdoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-yellow);"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>`,
+                    evaluate: () => {
+                        if (isRainy) return { score: 15, rating: "Hạn chế", time: "Chụp trong studio", desc: "Thời tiết ẩm ướt có mưa dễ làm hỏng thiết bị máy ảnh và ánh sáng không đủ tốt để chụp ngoài trời." };
+                        if (isAirPolluted) return { score: 30, rating: "Hạn chế", time: "Chọn ngày khác", desc: "Bầu trời nhiều sương mù quang hóa, tầm nhìn giảm và màu ảnh sẽ bị đục xám." };
+                        
+                        let score = 90;
+                        if (clouds > 80) score -= 10;
+                        if (temp > 33) score -= 20;
+                        
+                        let time = "Bình minh hoặc Hoàng hôn (Golden Hour)";
+                        if (temp > 30) time = "Sáng sớm (6:30 - 8:30) hoặc Chiều muộn";
+                        
+                        return {
+                            score: Math.max(0, Math.round(score)),
+                            rating: score > 75 ? "Rất tốt" : "Bình thường",
+                            time,
+                            desc: clouds < 50 ? "Trời trong xanh, ánh nắng rực rỡ mang lại độ tương phản tốt và màu sắc sống động cho bức ảnh." : "Trời nhiều mây giúp khuếch tán ánh sáng mềm mại, chụp chân dung rất đẹp không bị bóng mắt."
+                        };
+                    }
+                },
+                {
+                    id: "cafeOutdoor",
+                    name: "Cà phê vỉa hè & Dạo phố",
+                    type: "outdoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-green);"><path d="M17 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path></svg>`,
+                    evaluate: () => {
+                        if (isRainy) return { score: 10, rating: "Nên tránh", time: "Chọn quán máy lạnh", desc: "Mưa gió tạt khiến không gian vỉa hè ẩm ướt và bất tiện, hãy chọn quán cà phê máy lạnh trong nhà." };
+                        if (isAirPolluted) return { score: 30, rating: "Hạn chế", time: "Nên ngồi trong nhà", desc: "Không khí nhiều khói bụi ô nhiễm sẽ gây hại cho phổi nếu ngồi ngoài trời lâu." };
+                        
+                        let score = 100;
+                        if (temp > 31) score -= (temp - 31) * 7;
+                        if (temp < 17) score -= (17 - temp) * 5;
+                        
+                        let rating = "Rất thích hợp";
+                        if (score < 40) rating = "Hạn chế";
+                        else if (score < 70) rating = "Tạm ổn";
+                        
+                        return {
+                            score: Math.max(0, Math.round(score)),
+                            rating,
+                            time: "Buổi sáng hoặc Chiều tối mát",
+                            desc: `Nhiệt độ dễ chịu khoảng ${Math.round(temp)}°C, thời tiết khô thoáng, rất thích hợp để ngồi cà phê tán gẫu ngắm phố phường.`
+                        };
+                    }
+                },
+                {
+                    id: "gym",
+                    name: "Tập Gym & Yoga trong nhà",
+                    type: "indoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-blue);"><path d="M6.5 6.5h11M6.5 17.5h11M12 2v20M2 12h20"></path></svg>`,
+                    evaluate: () => {
+                        let score = 70;
+                        if (isRainy) score += 25;
+                        if (isAirPolluted) score += 25;
+                        if (isVeryHot) score += 20;
+                        if (isVeryCold) score += 15;
+                        
+                        return {
+                            score: Math.min(100, score),
+                            rating: score >= 90 ? "Ưu tiên số 1" : "Khuyên dùng",
+                            time: "Bất kỳ lúc nào rảnh",
+                            desc: (isRainy || isAirPolluted || isVeryHot) ? 
+                                `Do điều kiện thời tiết ngoài trời bất lợi (mưa ẩm/ô nhiễm/nắng gắt), tập luyện trong nhà là giải pháp an toàn và hiệu quả nhất lúc này.` :
+                                `Tập luyện thể thao trong nhà luôn là thói quen lành mạnh bất kể thời tiết.`
+                        };
+                    }
+                },
+                {
+                    id: "cinema",
+                    name: "Xem phim rạp & Trải nghiệm TTTM",
+                    type: "indoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-purple);"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>`,
+                    evaluate: () => {
+                        let score = 65;
+                        if (isVeryHot) score += 25;
+                        if (isRainy) score += 25;
+                        if (isAirPolluted) score += 20;
+                        
+                        return {
+                            score: Math.min(100, score),
+                            rating: score >= 85 ? "Lý tưởng nhất" : "Khá thích hợp",
+                            time: "Trưa hoặc Chiều tối",
+                            desc: (isVeryHot || isRainy) ? 
+                                `Nhiệt độ ngoài trời bất lợi. Tránh nóng hoặc tránh mưa tại các trung tâm thương mại và thưởng thức một bộ phim bom tấn là lựa chọn tuyệt vời.` : 
+                                `Giải trí tại trung tâm thương mại mát mẻ, mua sắm ẩm thực phong phú.`
+                        };
+                    }
+                },
+                {
+                    id: "cafeIndoor",
+                    name: "Đọc sách quán cà phê",
+                    type: "indoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-yellow);"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`,
+                    evaluate: () => {
+                        let score = 70;
+                        if (isRainy) score += 25;
+                        if (isVeryCold) score += 15;
+                        if (isAirPolluted) score += 15;
+                        
+                        return {
+                            score: Math.min(100, score),
+                            rating: score >= 85 ? "Cực kỳ ấm cúng" : "Bình thường",
+                            time: "Cả ngày",
+                            desc: isRainy ? 
+                                `Trời mưa rả rích bên ngoài, ngồi nhâm nhi tách trà ấm và đọc một cuốn sách trong không gian yên tĩnh của quán cà phê thì không gì bằng.` :
+                                `Không gian yên tĩnh tại quán cà phê phù hợp để tập trung làm việc hoặc thư giãn tâm hồn.`
+                        };
+                    }
+                },
+                {
+                    id: "museum",
+                    name: "Bảo tàng & Triển lãm nghệ thuật",
+                    type: "indoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-cyan);"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>`,
+                    evaluate: () => {
+                        let score = 70;
+                        if (isRainy) score += 20;
+                        if (isAirPolluted) score += 15;
+                        if (isVeryHot) score += 15;
+                        
+                        return {
+                            score: Math.min(100, score),
+                            rating: score >= 85 ? "Khuyên dùng" : "Khá tốt",
+                            time: "9:00 - 16:30 (Giờ mở cửa)",
+                            desc: `Hoạt động văn hóa bổ ích, tránh xa khói bụi và mưa nắng ngoài trời, ngắm nhìn những tác phẩm nghệ thuật.`
+                        };
+                    }
+                },
+                {
+                    id: "hotpot",
+                    name: "Thưởng thức lẩu nóng / BBQ",
+                    type: "indoor",
+                    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-red);"><path d="M12 2v4M17 5l-2.5 2.5M7 5l2.5 2.5"></path><path d="M3 12h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-7z"></path></svg>`,
+                    evaluate: () => {
+                        let score = 40;
+                        if (temp < 20) score += 40;
+                        if (temp < 15) score += 15;
+                        if (isRainy) score += 15;
+                        
+                        let rating = "Không ưu tiên";
+                        if (score >= 80) rating = "Tuyệt vời nhất";
+                        else if (score >= 60) rating = "Khá thích hợp";
+                        else if (score >= 40) rating = "Bình thường";
+                        
+                        return {
+                            score: Math.min(100, Math.max(0, Math.round(score))),
+                            rating,
+                            time: "11:30 - 13:30 hoặc 18:00 - 21:00",
+                            desc: temp < 22 ? 
+                                `Trời chuyển lạnh ẩm ướt (${Math.round(temp)}°C), tụ họp bạn bè quây quần bên nồi lẩu nghi ngút khói là trải nghiệm ẩm thực trọn vẹn nhất.` : 
+                                `Thời tiết hơi nóng bức để ăn lẩu ngoài trời, tuy nhiên các quán lẩu máy lạnh trong nhà vẫn là một lựa chọn tụ tập vui vẻ.`
+                        };
+                    }
+                }
+            ];
+
+            const activitiesGrid = document.getElementById('activitiesGrid');
+            if (!activitiesGrid) return;
+            activitiesGrid.innerHTML = '';
+            
+            const evaluatedActivities = activities.map(act => {
+                const evalData = act.evaluate();
+                return {
+                    ...act,
+                    eval: evalData
+                };
+            });
+            
+            evaluatedActivities.sort((a, b) => b.eval.score - a.eval.score);
+            
+            const filtered = evaluatedActivities.filter(act => {
+                if (activeActivityFilter === 'all') return true;
+                return act.type === activeActivityFilter;
+            }).slice(0, 3);
+            
+            if (filtered.length === 0) {
+                activitiesGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+                        Không tìm thấy hoạt động nào phù hợp với bộ lọc này.
+                    </div>
+                `;
+                return;
+            }
+            
+            filtered.forEach(act => {
+                const card = document.createElement('div');
+                card.className = 'activity-card';
+                
+                let badgeBg = "rgba(16, 185, 129, 0.15)";
+                let badgeColor = "var(--accent-green)";
+                
+                if (act.eval.score < 40) {
+                    badgeBg = "rgba(239, 68, 68, 0.15)";
+                    badgeColor = "var(--accent-red)";
+                } else if (act.eval.score < 65) {
+                    badgeBg = "rgba(245, 158, 11, 0.15)";
+                    badgeColor = "var(--accent-yellow)";
+                } else if (act.eval.score < 80) {
+                    badgeBg = "rgba(59, 130, 246, 0.15)";
+                    badgeColor = "var(--accent-blue)";
+                }
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="activity-header">
+                            <div class="activity-title-wrapper">
+                                ${act.icon}
+                                <span>${act.name}</span>
+                            </div>
+                            <span class="activity-score-badge" style="background: ${badgeBg}; color: ${badgeColor};">
+                                ${act.eval.score}/100 - ${act.eval.rating}
+                            </span>
+                        </div>
+                        <div class="activity-time-suggestion">${act.eval.time}</div>
+                    </div>
+                    <p class="activity-description">${act.eval.desc}</p>
+                `;
+                
+                activitiesGrid.appendChild(card);
+            });
         }
 
         // --- RENDER HOURLY TIMELINE ---
