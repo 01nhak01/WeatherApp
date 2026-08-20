@@ -2491,6 +2491,22 @@
             const savedCity = localStorage.getItem('lastCity') || 'Hanoi';
             fetchWeather(savedCity);
 
+            // Update clock in real-time
+            setInterval(() => {
+                if (currentWeatherData && currentWeatherData.current) {
+                    const timezoneOffset = currentWeatherData.current.timezone;
+                    const localDateTime = formatDateTime(timezoneOffset);
+                    const currentTimeEl = document.getElementById('currentTime');
+                    const currentDateEl = document.getElementById('currentDate');
+                    if (currentTimeEl && currentTimeEl.textContent !== localDateTime.time) {
+                        currentTimeEl.textContent = localDateTime.time;
+                    }
+                    if (currentDateEl && currentDateEl.textContent !== localDateTime.date) {
+                        currentDateEl.textContent = localDateTime.date;
+                    }
+                }
+            }, 1000);
+
             const isStaticServer = window.location.protocol === 'file:' || window.location.port === '63342';
 
             const getActiveCity = () => {
