@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -10,6 +10,27 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Modern CSS Variable Transitions */
+        @property --bg-color {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: #080b11;
+        }
+        @property --bg-glow-1 {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: rgba(29, 78, 216, 0.15);
+        }
+        @property --bg-glow-2 {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: rgba(139, 92, 246, 0.1);
+        }
+        @property --card-bg {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: rgba(15, 23, 42, 0.45);
+        }
         :root {
             --bg-color: #080b11;
             --bg-glow-1: rgba(29, 78, 216, 0.15);
@@ -22,6 +43,49 @@
             --accent-teal: #0d9488;
             --font-main: 'Inter', sans-serif;
             --font-serif: 'Inter', sans-serif;
+        }
+
+        /* Weather Themes */
+        body.weather-clear {
+            --bg-color: #0b1528;
+            --bg-glow-1: rgba(245, 158, 11, 0.18); /* Brighter warm amber glow for sun */
+            --bg-glow-2: rgba(59, 130, 246, 0.15); /* Sky blue glow */
+            --card-bg: rgba(20, 30, 55, 0.45);
+        }
+        
+        body.weather-clouds {
+            --bg-color: #0f131a;
+            --bg-glow-1: rgba(148, 163, 184, 0.12); /* Soft cool grey glow for clouds */
+            --bg-glow-2: rgba(71, 85, 105, 0.1);
+            --card-bg: rgba(24, 30, 42, 0.45);
+        }
+        
+        body.weather-rain {
+            --bg-color: #05080f; /* Darker, gloomier for rain */
+            --bg-glow-1: rgba(29, 78, 216, 0.08); /* Dim blue */
+            --bg-glow-2: rgba(15, 23, 42, 0.05);
+            --card-bg: rgba(10, 16, 28, 0.5);
+        }
+        
+        body.weather-thunderstorm {
+            --bg-color: #03050a; /* Darkest, stormy */
+            --bg-glow-1: rgba(168, 85, 247, 0.12); /* Lightning purple glow */
+            --bg-glow-2: rgba(59, 130, 246, 0.05);
+            --card-bg: rgba(8, 12, 22, 0.55);
+        }
+        
+        body.weather-snow {
+            --bg-color: #0d1624;
+            --bg-glow-1: rgba(224, 242, 254, 0.18); /* Light icy blue glow */
+            --bg-glow-2: rgba(147, 197, 253, 0.1);
+            --card-bg: rgba(22, 32, 50, 0.45);
+        }
+        
+        body.weather-mist {
+            --bg-color: #0e121a;
+            --bg-glow-1: rgba(203, 213, 225, 0.1); /* Hazy grey-white */
+            --bg-glow-2: rgba(148, 163, 184, 0.08);
+            --card-bg: rgba(18, 24, 34, 0.45);
         }
 
         * {
@@ -43,6 +107,7 @@
             padding: 24px;
             overflow-x: hidden;
             line-height: 1.5;
+            transition: background-color 1.2s ease, --bg-color 1.2s ease, --bg-glow-1 1.2s ease, --bg-glow-2 1.2s ease, --card-bg 1.2s ease;
         }
 
         /* Custom Scrollbar */
@@ -643,9 +708,30 @@
             }
         }
 
+        function updateWeatherTheme(iconCode) {
+            if (!iconCode) return;
+            document.body.classList.remove('weather-clear', 'weather-clouds', 'weather-rain', 'weather-thunderstorm', 'weather-snow', 'weather-mist');
+            if (iconCode.startsWith('01')) {
+                document.body.classList.add('weather-clear');
+            } else if (iconCode.startsWith('02') || iconCode.startsWith('03') || iconCode.startsWith('04')) {
+                document.body.classList.add('weather-clouds');
+            } else if (iconCode.startsWith('09') || iconCode.startsWith('10')) {
+                document.body.classList.add('weather-rain');
+            } else if (iconCode.startsWith('11')) {
+                document.body.classList.add('weather-thunderstorm');
+            } else if (iconCode.startsWith('13')) {
+                document.body.classList.add('weather-snow');
+            } else if (iconCode.startsWith('50')) {
+                document.body.classList.add('weather-mist');
+            }
+        }
+
         function updateUI() {
             if (!currentWeatherData) return;
             const current = currentWeatherData.current;
+            if (current.weather && current.weather[0]) {
+                updateWeatherTheme(current.weather[0].icon);
+            }
             
             const country = current.sys.country ? `, ${current.sys.country}` : '';
             document.getElementById('detailLocation').textContent = `${current.name}${country}`;
