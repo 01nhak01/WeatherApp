@@ -12,6 +12,28 @@
     <!-- Chart.js for Temperature Trend -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Modern CSS Variable Transitions */
+        @property --bg-color {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: #080b11;
+        }
+        @property --bg-glow-1 {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: rgba(29, 78, 216, 0.15);
+        }
+        @property --bg-glow-2 {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: rgba(139, 92, 246, 0.1);
+        }
+        @property --card-bg {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: rgba(15, 23, 42, 0.45);
+        }
+
         :root {
             --bg-color: #080b11;
             --bg-glow-1: rgba(29, 78, 216, 0.15);
@@ -34,6 +56,49 @@
             --font-serif: 'Inter', sans-serif;
         }
 
+        /* Weather Themes */
+        body.weather-clear {
+            --bg-color: #0b1528;
+            --bg-glow-1: rgba(245, 158, 11, 0.18); /* Brighter warm amber glow for sun */
+            --bg-glow-2: rgba(59, 130, 246, 0.15); /* Sky blue glow */
+            --card-bg: rgba(20, 30, 55, 0.45);
+        }
+        
+        body.weather-clouds {
+            --bg-color: #0f131a;
+            --bg-glow-1: rgba(148, 163, 184, 0.12); /* Soft cool grey glow for clouds */
+            --bg-glow-2: rgba(71, 85, 105, 0.1);
+            --card-bg: rgba(24, 30, 42, 0.45);
+        }
+        
+        body.weather-rain {
+            --bg-color: #05080f; /* Darker, gloomier for rain */
+            --bg-glow-1: rgba(29, 78, 216, 0.08); /* Dim blue */
+            --bg-glow-2: rgba(15, 23, 42, 0.05);
+            --card-bg: rgba(10, 16, 28, 0.5);
+        }
+        
+        body.weather-thunderstorm {
+            --bg-color: #03050a; /* Darkest, stormy */
+            --bg-glow-1: rgba(168, 85, 247, 0.12); /* Lightning purple glow */
+            --bg-glow-2: rgba(59, 130, 246, 0.05);
+            --card-bg: rgba(8, 12, 22, 0.55);
+        }
+        
+        body.weather-snow {
+            --bg-color: #0d1624;
+            --bg-glow-1: rgba(224, 242, 254, 0.18); /* Light icy blue glow */
+            --bg-glow-2: rgba(147, 197, 253, 0.1);
+            --card-bg: rgba(22, 32, 50, 0.45);
+        }
+        
+        body.weather-mist {
+            --bg-color: #0e121a;
+            --bg-glow-1: rgba(203, 213, 225, 0.1); /* Hazy grey-white */
+            --bg-glow-2: rgba(148, 163, 184, 0.08);
+            --card-bg: rgba(18, 24, 34, 0.45);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -53,6 +118,7 @@
             padding: 24px;
             overflow-x: hidden;
             line-height: 1.5;
+            transition: background-color 1.2s ease, --bg-color 1.2s ease, --bg-glow-1 1.2s ease, --bg-glow-2 1.2s ease, --card-bg 1.2s ease;
         }
 
         /* Custom Scrollbar */
@@ -88,7 +154,7 @@
             border-radius: 20px;
             padding: 24px;
             box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 1.2s ease, --card-bg 1.2s ease;
         }
 
         .card:hover {
@@ -1503,6 +1569,26 @@
             return 'Nguy hại';
         }
 
+        function updateWeatherTheme(iconCode) {
+            if (!iconCode) return;
+            // Remove previous weather classes
+            document.body.classList.remove('weather-clear', 'weather-clouds', 'weather-rain', 'weather-thunderstorm', 'weather-snow', 'weather-mist');
+            
+            if (iconCode.startsWith('01')) {
+                document.body.classList.add('weather-clear');
+            } else if (iconCode.startsWith('02') || iconCode.startsWith('03') || iconCode.startsWith('04')) {
+                document.body.classList.add('weather-clouds');
+            } else if (iconCode.startsWith('09') || iconCode.startsWith('10')) {
+                document.body.classList.add('weather-rain');
+            } else if (iconCode.startsWith('11')) {
+                document.body.classList.add('weather-thunderstorm');
+            } else if (iconCode.startsWith('13')) {
+                document.body.classList.add('weather-snow');
+            } else if (iconCode.startsWith('50')) {
+                document.body.classList.add('weather-mist');
+            }
+        }
+
         function getAqiDescription(aqi) {
             switch(aqi) {
                 case 1: return 'Tốt';
@@ -1697,7 +1783,10 @@
             const weatherId = current.weather[0].id;
             const iconCode = current.weather[0].icon;
 
-            // 1. Title bar & Local Time
+            // 1. Update theme based on weather
+            updateWeatherTheme(iconCode);
+
+            // 2. Title bar & Local Time
             const localDateTime = formatDateTime(timezoneOffset);
             document.getElementById('currentTime').textContent = localDateTime.time;
             document.getElementById('currentDate').textContent = localDateTime.date;
